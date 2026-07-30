@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR - QR Monkey</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        .scan-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            text-align: center;
+        }
+        #reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            background: rgba(0,0,0,0.2);
+            border: none;
+        }
+        .scan-result-panel {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+        .scan-result-text {
+            word-break: break-all;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+        /* html5-qrcode UI Overrides */
+        #reader__dashboard_section_csr button,
+        #reader__dashboard_section_swaplink {
+            background: var(--primary) !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            color: white !important;
+            cursor: pointer !important;
+            font-family: 'Outfit', sans-serif !important;
+            margin: 10px !important;
+            text-decoration: none !important;
+        }
+        #reader__dashboard_section_csr span { color: var(--text-main) !important; font-family: 'Outfit', sans-serif !important;}
+        #reader a { color: var(--primary) !important; }
+        #reader__camera_selection {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        #reader video {
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Top Navbar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="/logo.png" alt="QR Monkey" class="nav-logo-img">
+                <h2>QR <span>Monkey</span></h2>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="/index.html" class="nav-btn btn-outline" style="text-decoration: none;">Create Your Own</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="glass-panel scan-container">
+            <h2><i class="ph-bold ph-scan"></i> Scan QR Code</h2>
+            <p class="text-muted">Use your camera or upload an image to scan</p>
+
+            <div id="reader"></div>
+            
+            <div id="scan-result" class="scan-result-panel">
+                <h3 style="color: var(--success); margin-bottom: 0.5rem;"><i class="ph-fill ph-check-circle"></i> Scan Successful!</h3>
+                <div class="scan-result-text" id="result-text"></div>
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                    <button id="copy-btn" class="secondary-btn"><i class="ph ph-copy"></i> Copy Text</button>
+                    <a id="open-link-btn" href="#" target="_blank" class="primary-btn" style="text-decoration: none; display: none;">
+                        <span>Open Link</span> <i class="ph ph-arrow-square-out"></i>
+                    </a>
+                </div>
+                <button id="scan-again-btn" class="secondary-btn" style="margin-top: 1.5rem; width: 100%;"><i class="ph ph-arrow-clockwise"></i> Scan Another QR</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="/scan.js"></script>
+</body>
+</html>

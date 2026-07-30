@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Monkey - Universal QR Generator</title>
+    <meta name="description" content="Generate high-quality QR codes for Links, Images, and Documents instantly.">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- Phosphor Icons for premium look -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Top Navbar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="/logo.png" alt="QR Monkey" class="nav-logo-img">
+                <h2>QR <span>Monkey</span></h2>
+            </div>
+            
+            <div class="nav-auth" id="nav-auth-section">
+                <!-- Logged Out State -->
+                <div id="logged-out-state" style="display: flex; gap: 10px;">
+                    <div class="nav-actions" style="display: flex; gap: 1rem; align-items: center;">
+                        <a href="/scan.html" class="nav-btn btn-outline" style="text-decoration: none;"><i class="ph-bold ph-scan"></i> Scan QR</a>
+                        <button class="nav-btn btn-primary" id="nav-login-btn">Log In</button>
+                        <button class="nav-btn btn-primary" id="nav-signup-btn">Sign Up</button>
+                    </div>
+                </div>
+                <!-- Logged In State -->
+                <div id="logged-in-state" style="display: none; align-items: center; gap: 15px;">
+                    <div class="user-profile">
+                        <div class="user-avatar"><i class="ph ph-user"></i></div>
+                        <span id="user-email-display">user@example.com</span>
+                    </div>
+                    <button class="nav-btn btn-primary" id="nav-dashboard-btn">Dashboard</button>
+                    <button class="nav-btn btn-outline" id="nav-logout-btn">
+                        <i class="ph ph-sign-out"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container hero-container">
+        <section class="hero-section">
+            <div class="hero-copy">
+                <div class="hero-badge">
+                    <i class="ph ph-sparkle"></i>
+                    Smart QR generation for modern brands
+                </div>
+
+                <h1 class="hero-title">Make every scan feel <span>premium</span>.</h1>
+                <p class="hero-subtitle">Turn links, images, and documents into polished QR codes instantly. Fast, secure, and beautifully simple for creators, businesses, and everyday users.</p>
+
+                <div class="hero-actions">
+                    <button class="primary-btn hero-btn" id="hero-get-started-btn">
+                        <span>Get Started Free</span>
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                    <a href="#features" class="secondary-link">
+                        <i class="ph ph-play-circle"></i> See how it works
+                    </a>
+                </div>
+
+                <div class="hero-highlights">
+                    <div class="highlight-pill"><i class="ph ph-bolt"></i> Instant</div>
+                    <div class="highlight-pill"><i class="ph ph-shield-check"></i> Secure</div>
+                    <div class="highlight-pill"><i class="ph ph-share-network"></i> Shareable</div>
+                </div>
+            </div>
+
+            <div class="hero-visual-card">
+                <div class="hero-card-top">
+                    <span class="card-dot"></span>
+                    <span class="card-dot"></span>
+                    <span class="card-dot"></span>
+                </div>
+
+                <div class="glass-panel main-panel guest-generator" style="text-align: left;">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="url">
+                            <i class="ph ph-link"></i> Link
+                        </button>
+                        <button class="tab-btn" data-tab="image">
+                            <i class="ph ph-image"></i> Image
+                        </button>
+                        <button class="tab-btn" data-tab="document">
+                            <i class="ph ph-file-text"></i> Document
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <div class="input-section active" id="url-section">
+                            <label for="url-input">Website URL</label>
+                            <div class="input-group">
+                                <i class="ph ph-globe"></i>
+                                <input type="url" id="url-input" placeholder="https://example.com" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="input-section" id="file-section">
+                            <div class="upload-area" id="drop-zone">
+                                <input type="file" id="file-input" hidden>
+                                <i class="ph ph-cloud-arrow-up upload-icon"></i>
+                                <h3>Drag & Drop your file here</h3>
+                                <p>or click to browse</p>
+                                <span class="file-limits" id="file-helper-text">Supports JPG, PNG, GIF (Max 10MB)</span>
+                            </div>
+                            <div class="file-preview" id="file-preview" style="display: none;">
+                                <i class="ph ph-file file-preview-icon"></i>
+                                <div class="file-info">
+                                    <span class="file-name" id="file-name">filename.jpg</span>
+                                    <span class="file-size" id="file-size">1.2 MB</span>
+                                </div>
+                                <button class="remove-file-btn" id="remove-file" title="Remove file">
+                                    <i class="ph ph-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="encryption-section">
+                        <div class="encryption-header">
+                            <label><i class="ph ph-shield-check"></i> Encrypt Data (Optional)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="encrypt-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div id="password-container" style="display: none; margin-top: 1rem;">
+                            <div class="input-group">
+                                <i class="ph ph-lock-key"></i>
+                                <input type="password" id="encrypt-password" placeholder="Enter a strong password">
+                            </div>
+                            <p class="password-help">Anyone scanning the QR will need this password to read the contents.</p>
+                        </div>
+                    </div>
+
+                    <button id="generate-btn" class="primary-btn">
+                        <span>Generate QR Code</span>
+                        <i class="ph ph-magic-wand"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section" id="features">
+            <div class="section-heading">
+                <p class="section-eyebrow">Why QR Monkey</p>
+                <h2>Everything you need for fast, clean QR experiences</h2>
+            </div>
+
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-icon"><i class="ph ph-bolt"></i></div>
+                    <h3>Lightning quick</h3>
+                    <p>Create polished QR codes in seconds with zero setup.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon"><i class="ph ph-shield-check"></i></div>
+                    <h3>Secure by design</h3>
+                    <p>Protect sensitive content with optional password encryption.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon"><i class="ph ph-device-mobile"></i></div>
+                    <h3>Built for every screen</h3>
+                    <p>Share QR codes seamlessly across web, print, and mobile.</p>
+                </article>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <strong>3+</strong>
+                    <span>Content types</span>
+                </div>
+                <div class="stat-card">
+                    <strong>10MB</strong>
+                    <span>File upload limit</span>
+                </div>
+                <div class="stat-card">
+                    <strong>100%</strong>
+                    <span>Ready to share</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="glass-panel result-panel" id="result-panel" style="display: none; margin-top: 2rem;">
+            <div class="result-header">
+                <h2>Your QR Code is Ready!</h2>
+                <button class="close-result" id="close-result">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+            
+            <div class="qr-display">
+                <div id="qr-code-container"></div>
+                <div class="loader" id="loading-spinner" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Uploading to cloud...</p>
+                </div>
+            </div>
+
+            <div class="qr-actions" id="qr-actions" style="display: none; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+                <button id="download-btn" class="secondary-btn">
+                    <i class="ph ph-download-simple"></i> Download QR
+                </button>
+                <button id="share-qr-btn" class="secondary-btn">
+                    <i class="ph ph-share-network"></i> Share QR
+                </button>
+                <button id="copy-link-btn" class="secondary-btn">
+                    <i class="ph ph-copy"></i> Copy Link
+                </button>
+                <a id="share-link" class="share-link" href="#" target="_blank" style="width: 100%; text-align: center; margin-top: 0.5rem;">
+                    <i class="ph ph-arrow-square-out"></i> Open Link
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Auth Modal Overlay -->
+    <div class="modal-overlay" id="auth-modal" style="display: none;">
+        <div class="glass-panel modal-content">
+            <button class="close-modal" id="close-modal-btn">
+                <i class="ph ph-x"></i>
+            </button>
+            
+            <div class="modal-header">
+                <i class="ph-fill ph-user-circle"></i>
+                <h2 id="modal-title">Welcome Back</h2>
+                <p id="modal-subtitle">Log in to your QR Monkey account</p>
+            </div>
+
+            <form id="auth-form">
+                <div class="input-group modal-input">
+                    <i class="ph ph-envelope-simple"></i>
+                    <input type="email" id="auth-email" placeholder="Email address" required>
+                </div>
+                
+                <div class="input-group modal-input">
+                    <i class="ph ph-lock-key"></i>
+                    <input type="password" id="auth-password" placeholder="Password" required>
+                </div>
+
+                <div class="auth-error" id="auth-error" style="display: none;"></div>
+
+                <button type="submit" class="primary-btn" id="auth-submit-btn">Log In</button>
+            </form>
+
+            <div class="auth-divider">
+                <span>or continue with</span>
+            </div>
+            
+            <button class="secondary-btn google-btn" id="google-signin-btn">
+                <i class="ph-fill ph-google-logo"></i> Google
+            </button>
+
+            <div class="modal-footer">
+                <p id="modal-toggle-text">Don't have an account? <span id="toggle-auth-mode">Sign Up</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/script.js"></script>
+</body>
+</html>

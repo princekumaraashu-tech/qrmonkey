@@ -1,0 +1,39 @@
+{
+  "rules": {
+    "scans": {
+      // Anyone can read a scan to view the QR content
+      ".read": true,
+      
+      "$scanId": {
+        // Write logic:
+        // 1. Must be authenticated (including anonymous guests).
+        // 2. CREATE: Can only create a new scan where uid matches auth.uid.
+        // 3. DELETE: Can only delete if you are the owner, OR if the scan has expired (expiresAt < now).
+        // 4. UPDATE: Not allowed.
+        ".write": "auth != null && ( (!data.exists() && newData.child('uid').val() === auth.uid) || (!newData.exists() && (data.child('uid').val() === auth.uid || (data.child('expiresAt').exists() && data.child('expiresAt').val() < now))) )",
+        
+        // Validate the structure of the data when creating
+        ".validate": "newData.hasChildren(['uid', 'type', 'data', 'timestamp'])",
+        
+        "type": {
+          ".validate": "newData.val() == 'url' || newData.val() == 'image' || newData.val() == 'document'"
+        },
+        "data": {
+          // Limit payload size to ~15MB (protects against payload bombing)
+          ".validate": "newData.isString() && newData.val().length < 15000000"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    
+    "users": {
+      "$uid": {
+        // Users can only read and write their own profile and history
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    }
+  }
+}

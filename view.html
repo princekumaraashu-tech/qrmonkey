@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View QR Content - QR Monkey</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .view-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            text-align: center;
+        }
+        .view-content img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-top: 1.5rem;
+        }
+        .doc-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            text-decoration: none;
+            color: var(--text-main);
+            border: 1px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        .doc-download:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+        .doc-download i {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Top Navbar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="/logo.png" alt="QR Monkey" class="nav-logo-img">
+                <h2>QR <span>Monkey</span></h2>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="/scan.html" class="nav-btn btn-outline" style="text-decoration: none;"><i class="ph-bold ph-scan"></i> Scan QR</a>
+                <a href="/index.html" class="nav-btn primary-btn" style="text-decoration: none;">Create Your Own</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="glass-panel view-container" id="content-card">
+            
+            <div class="loader-container" id="loading-state">
+                <div class="spinner"></div>
+                <p>Fetching content securely...</p>
+            </div>
+
+            <div id="error-state" style="display: none; padding: 2rem 0;">
+                <i class="ph-fill ph-warning-circle" style="font-size: 4rem; color: var(--error);"></i>
+                <h2 style="margin: 1rem 0;">Content Not Found</h2>
+                <p class="text-muted">The QR code you scanned might be invalid, expired, or deleted.</p>
+            </div>
+
+            <div id="password-state" style="display: none; padding: 2rem 0;">
+                <i class="ph-fill ph-lock-key" style="font-size: 4rem; color: var(--primary);"></i>
+                <h2 style="margin: 1rem 0;">Password Protected</h2>
+                <p class="text-muted" style="margin-bottom: 2rem;">This content is encrypted. Please enter the password to view it.</p>
+                <div class="input-group" style="max-width: 400px; margin: 0 auto 1.5rem auto;">
+                    <i class="ph ph-lock"></i>
+                    <input type="password" id="unlock-password" placeholder="Enter password">
+                </div>
+                <button class="primary-btn" id="unlock-btn">
+                    <span>Unlock Content</span>
+                    <i class="ph ph-lock-open"></i>
+                </button>
+            </div>
+
+            <div id="success-state" style="display: none;" class="view-content">
+                <h2><i class="ph-fill ph-check-circle" style="color: var(--success);"></i> Scan Successful</h2>
+                <p class="text-muted" id="file-name-display" style="margin-bottom: 1rem;">File Content</p>
+                
+                <div id="media-container"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module" src="/view.js"></script>
+</body>
+</html>

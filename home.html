@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - QR Monkey</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="dashboard-body">
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-panel">
+            <div class="sidebar-logo" style="justify-content: center; margin-bottom: 2rem;">
+                <img src="/logo.png" alt="QR Monkey Logo" class="sidebar-logo-img">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="side-btn active" data-view="generate">
+                    <i class="ph ph-qr-code"></i> Generate QR
+                </button>
+                <button class="side-btn" data-view="customize">
+                    <i class="ph ph-paint-brush"></i> Customize QR
+                </button>
+                <button class="side-btn" data-view="decrypt">
+                    <i class="ph ph-lock-key-open"></i> Decrypt QR
+                </button>
+                <button class="side-btn" data-view="history">
+                    <i class="ph ph-clock-counter-clockwise"></i> History
+                </button>
+                <button class="side-btn" data-view="pricing">
+                    <i class="ph ph-currency-circle-dollar"></i> Pricing
+                </button>
+                <button class="side-btn" id="view-settings">
+                    <i class="ph ph-gear"></i> Settings
+                </button>
+                <button class="side-btn" id="upgrade-pro" style="color: var(--primary); font-weight: bold; margin-top: 1rem; border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.1);">
+                    <i class="ph-fill ph-crown"></i> Upgrade to Pro
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div style="display: flex; gap: 1rem;">
+                    <a href="/scan.html" class="nav-btn btn-outline" style="text-decoration: none;"><i class="ph-bold ph-scan"></i> Scan QR</a>
+                    <button id="logout-btn" class="nav-btn secondary-btn">
+                        <i class="ph ph-sign-out"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            
+            <!-- Generate QR View -->
+            <div class="dashboard-view active" id="view-generate">
+                <header class="view-header">
+                    <h2>Generate QR Code</h2>
+                    <p>Create digital portals for links, images, or documents.</p>
+                </header>
+
+                <!-- Policy Banner -->
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+                    <i class="ph-fill ph-info" style="color: var(--error); font-size: 1.5rem;"></i>
+                    <div style="flex: 1;">
+                        <h4 style="color: var(--error); margin-bottom: 0.2rem; font-size: 1rem;">Strict Free Tier Policy</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Free QR codes for files and images expire and are securely <strong>deleted from our servers after 72 hours</strong>. <a href="#" style="color: var(--primary); text-decoration: underline; font-weight: bold;">Upgrade to Pro</a> to keep them forever.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel main-panel">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="url">
+                            <i class="ph ph-link"></i> Link
+                        </button>
+                        <button class="tab-btn" data-tab="image">
+                            <i class="ph ph-image"></i> Image
+                        </button>
+                        <button class="tab-btn" data-tab="document">
+                            <i class="ph ph-file-text"></i> Document
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- URL Input -->
+                        <div class="input-section active" id="url-section">
+                            <label for="url-input">Website URL</label>
+                            <div class="input-group">
+                                <i class="ph ph-globe"></i>
+                                <input type="url" id="url-input" placeholder="https://example.com" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="input-section" id="file-section">
+                            <div class="upload-area" id="drop-zone">
+                                <input type="file" id="file-input" hidden>
+                                <i class="ph ph-cloud-arrow-up upload-icon"></i>
+                                <h3>Drag & Drop your file here</h3>
+                                <p>or click to browse</p>
+                                <span class="file-limits" id="file-helper-text">Supports JPG, PNG, GIF (Max 10MB)</span>
+                            </div>
+                            <div class="file-preview" id="file-preview" style="display: none;">
+                                <i class="ph ph-file file-preview-icon"></i>
+                                <div class="file-info">
+                                    <span class="file-name" id="file-name">filename.jpg</span>
+                                    <span class="file-size" id="file-size">1.2 MB</span>
+                                </div>
+                                <button class="remove-file-btn" id="remove-file" title="Remove file">
+                                    <i class="ph ph-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Encryption Options -->
+                    <div class="encryption-section" style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <label style="margin: 0; display: flex; align-items: center; gap: 0.5rem;"><i class="ph ph-shield-check"></i> Encrypt Data (Optional)</label>
+                            <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                                <input type="checkbox" id="encrypt-toggle" style="opacity: 0; width: 0; height: 0;">
+                                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; border-radius: 24px;"></span>
+                            </label>
+                        </div>
+                        <div id="password-container" style="display: none; margin-top: 1rem;">
+                            <div class="input-group">
+                                <i class="ph ph-lock-key"></i>
+                                <input type="password" id="encrypt-password" placeholder="Enter a strong password">
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Anyone scanning the QR will need this password to read the contents.</p>
+                        </div>
+                    </div>
+
+                    <button id="generate-btn" class="primary-btn">
+                        <span>Generate QR Code</span>
+                        <i class="ph ph-magic-wand"></i>
+                    </button>
+                </div>
+
+                <!-- Result Panel -->
+                <div class="glass-panel result-panel" id="result-panel" style="display: none; margin-top: 2rem;">
+                    <div class="result-header">
+                        <h2>Your QR Code is Ready!</h2>
+                        <button class="close-result" id="close-result">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="qr-display">
+                        <div id="qr-code-container"></div>
+                        <div class="loader" id="loading-spinner" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Uploading to cloud...</p>
+                        </div>
+                    </div>
+
+                    <div class="qr-actions" id="qr-actions" style="display: none; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+                        <button id="download-btn" class="secondary-btn">
+                            <i class="ph ph-download-simple"></i> Download QR
+                        </button>
+                        <button id="share-qr-btn" class="secondary-btn">
+                            <i class="ph ph-share-network"></i> Share QR
+                        </button>
+                        <button id="copy-link-btn" class="secondary-btn">
+                            <i class="ph ph-copy"></i> Copy Link
+                        </button>
+                        <a id="share-link" class="share-link" href="#" target="_blank" style="width: 100%; text-align: center; margin-top: 0.5rem;">
+                            <i class="ph ph-arrow-square-out"></i> Open Link
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decrypt QR View -->
+            <div class="dashboard-view" id="view-decrypt">
+                <header class="view-header">
+                    <h2>Decrypt QR Code</h2>
+                    <p>Enter encrypted QR data and password to unlock.</p>
+                </header>
+                <div class="glass-panel main-panel">
+                    <div class="input-section active">
+                        <label>Encrypted Data</label>
+                        <div class="input-group" style="margin-bottom: 1.5rem;">
+                            <i class="ph ph-code"></i>
+                            <input type="text" id="decrypt-data" placeholder="Paste encrypted QR text here">
+                        </div>
+
+                        <label>Password</label>
+                        <div class="input-group" style="margin-bottom: 1.5rem;">
+                            <i class="ph ph-lock-key"></i>
+                            <input type="password" id="decrypt-password" placeholder="Enter decryption password">
+                        </div>
+
+                        <button id="decrypt-btn" class="primary-btn">
+                            <i class="ph ph-lock-key-open"></i> Decrypt Data
+                        </button>
+
+                        <div id="decrypt-result" style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: 12px;">
+                            <h4 style="color: var(--success); margin-bottom: 0.5rem;"><i class="ph ph-check-circle"></i> Decrypted Successfully</h4>
+                            <a id="decrypted-text" href="#" target="_blank" style="word-break: break-all; color: var(--text-main);"></a>
+                        </div>
+                        <div id="decrypt-error" style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); border-radius: 12px;">
+                            <h4 style="color: var(--error); margin-bottom: 0.5rem;"><i class="ph ph-warning-circle"></i> Decryption Failed</h4>
+                            <p>Invalid data or wrong password.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customize QR View -->
+            <div class="dashboard-view" id="view-customize">
+                <header class="view-header">
+                    <h2>Customize QR</h2>
+                    <p>Change colors, add logos, and style your QR codes.</p>
+                </header>
+                <div class="glass-panel text-center" style="padding: 4rem 2rem;">
+                    <i class="ph ph-paint-brush" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Coming Soon</h3>
+                    <p class="text-muted">Advanced customization options are currently in development.</p>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div class="dashboard-view" id="view-history">
+                <header class="view-header">
+                    <h2>Your QR History</h2>
+                    <p>Click on any card to flip and view the QR code.</p>
+                </header>
+                <div class="history-grid" id="history-container">
+                    <!-- History cards will be injected here via JS -->
+                </div>
+                <div class="glass-panel text-center" id="history-empty" style="padding: 4rem 2rem; display: none;">
+                    <i class="ph ph-clock-counter-clockwise" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                    <h3>No History Found</h3>
+                    <p class="text-muted">Generate some QR codes to see them here.</p>
+                </div>
+            </div>
+
+            <!-- Pricing View -->
+            <div class="dashboard-view" id="view-pricing">
+                <header class="view-header">
+                    <h2>Pricing Plans</h2>
+                    <p>Upgrade to Pro for limitless possibilities.</p>
+                </header>
+                <div class="glass-panel text-center" style="padding: 4rem 2rem;">
+                    <i class="ph ph-currency-circle-dollar" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Pro Plan Available Soon</h3>
+                    <p class="text-muted">You are currently on the Free Tier.</p>
+                </div>
+            </div>
+
+            <!-- Profile Setting View -->
+            <div class="dashboard-view" id="view-profile">
+                <header class="view-header">
+                    <h2>Profile Settings</h2>
+                    <p>Manage your account and preferences.</p>
+                </header>
+                <div class="glass-panel profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar"><i class="ph ph-user"></i></div>
+                        <div>
+                            <h3 id="profile-email">Loading...</h3>
+                            <span class="badge">Free Plan</span>
+                        </div>
+                    </div>
+                    <hr class="divider">
+                    <div class="profile-details">
+                        <div class="detail-group">
+                            <label>Member Since</label>
+                            <p id="profile-created">...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script type="module" src="/home.js"></script>
+</body>
+</html>
