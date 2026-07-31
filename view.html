@@ -4,49 +4,491 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View QR Content - QR Monkey</title>
+    <meta name="description" content="Securely view content shared via QR Monkey QR codes.">
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script type="module" src="/mobile.js"></script>
     <style>
-        .view-container {
-            max-width: 600px;
-            margin: 4rem auto;
-            padding: 2rem;
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .view-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .view-card {
+            width: 100%;
+            max-width: 560px;
+            position: relative;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
+            overflow: hidden;
+            animation: cardEntry 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes cardEntry {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Top accent bar */
+        .view-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), #3b82f6, #8b5cf6);
+            z-index: 10;
+        }
+
+        .view-card-inner {
+            padding: 2.5rem 2rem;
             text-align: center;
         }
-        .view-content img {
-            max-width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            margin-top: 1.5rem;
-        }
-        .doc-download {
-            display: inline-flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1.5rem;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            margin-top: 1.5rem;
-            text-decoration: none;
-            color: var(--text-main);
-            border: 1px solid var(--primary);
+
+        /* QR ID Badge */
+        .qr-id-badge {
+            display: none;
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+            padding: 0.3rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            letter-spacing: 0.5px;
+            font-weight: 500;
             transition: all 0.3s ease;
+            cursor: default;
         }
-        .doc-download:hover {
-            background: rgba(99, 102, 241, 0.2);
-            transform: translateY(-2px);
+
+        .qr-id-badge:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
         }
-        .doc-download i {
-            font-size: 2.5rem;
-            color: var(--primary);
+
+        .qr-id-badge .id-value {
+            font-family: 'Outfit', monospace;
+            letter-spacing: 1.5px;
+            color: var(--text-main);
+            font-weight: 600;
         }
+
+        /* Loading state */
         .loader-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
+            gap: 1.25rem;
+            padding: 2rem 0;
+        }
+
+        .loader-container p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+            animation: pulse-text 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* State icon containers */
+        .state-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+
+        .state-icon-error {
+            background: rgba(239, 68, 68, 0.12);
+            border: 2px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .state-icon-error i {
+            font-size: 2.5rem;
+            color: #ef4444;
+        }
+
+        .state-icon-lock {
+            background: rgba(99, 102, 241, 0.12);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .state-icon-lock i {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        .state-icon-success {
+            background: rgba(16, 185, 129, 0.12);
+            border: 2px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .state-icon-success i {
+            font-size: 2.5rem;
+            color: #10b981;
+        }
+
+        /* Headings */
+        .view-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .view-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+
+        /* Error QR ID report box */
+        .error-report-box {
+            margin-top: 1.75rem;
+            padding: 1.25rem;
+            background: rgba(239, 68, 68, 0.06);
+            border-radius: 14px;
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            text-align: left;
+        }
+
+        .error-report-box .report-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .error-report-box .report-label i {
+            color: var(--error);
+        }
+
+        .error-report-box .report-id {
+            font-family: 'Outfit', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fca5a5;
+            letter-spacing: 2px;
+            word-break: break-all;
+            background: rgba(239, 68, 68, 0.08);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px dashed rgba(239, 68, 68, 0.25);
+        }
+
+        .error-report-box .report-hint {
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Password state */
+        .password-form {
+            margin-top: 2rem;
+        }
+
+        .password-input-group {
+            position: relative;
+            max-width: 360px;
+            margin: 0 auto 1.25rem;
+        }
+
+        .password-input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        .password-input-group input {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 2.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .password-input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .unlock-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.85rem 2rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .unlock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+        }
+
+        .unlock-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Success state */
+        .success-content {
+            margin-top: 1.5rem;
+        }
+
+        .file-name-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            color: #6ee7b7;
+            font-weight: 500;
+            margin-bottom: 1.25rem;
+        }
+
+        .media-container {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .media-container img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            transition: transform 0.4s ease;
+            cursor: zoom-in;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .media-container img:hover {
+            transform: scale(1.02);
+        }
+
+        /* Document download card */
+        .doc-download {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text-main);
+            border: 1.5px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .doc-download:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+        }
+
+        .doc-icon-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(99, 102, 241, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .doc-icon-wrap i {
+            font-size: 1.6rem;
+            color: var(--primary);
+        }
+
+        .doc-info {
+            text-align: left;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .doc-info strong {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+
+        .doc-info span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .doc-download-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .doc-download:hover .doc-download-icon {
+            background: var(--primary);
+            color: white;
+        }
+
+        .doc-download-icon i {
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .doc-download:hover .doc-download-icon i {
+            color: white;
+        }
+
+        /* Text/URL content */
+        .text-content-box {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            word-break: break-all;
+            text-align: left;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: var(--text-main);
+        }
+
+        /* Bottom action bar */
+        .view-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .view-action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .view-action-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: var(--primary);
+        }
+
+        /* Footer branding */
+        .view-footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 0.75rem;
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .view-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .view-card-inner {
+                padding: 2rem 1.25rem;
+            }
+
+            .view-title {
+                font-size: 1.25rem;
+            }
+
+            .qr-id-badge {
+                position: relative;
+                top: auto;
+                right: auto;
+                display: inline-flex !important;
+                margin-bottom: 1rem;
+            }
+
+            .view-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -63,50 +505,91 @@
                 <img src="/logo.png" alt="QR Monkey" class="nav-logo-img">
                 <h2>QR <span>Monkey</span></h2>
             </div>
-            <div style="display: flex; gap: 1rem;">
-                <a href="/scan.html" class="nav-btn btn-outline" style="text-decoration: none;"><i class="ph-bold ph-scan"></i> Scan QR</a>
-                <a href="/index.html" class="nav-btn primary-btn" style="text-decoration: none;">Create Your Own</a>
+            <div style="display: flex; gap: 0.75rem;">
+                <a href="/scan.html" class="nav-btn btn-outline" style="text-decoration: none;"><i class="ph-bold ph-scan"></i> Scan</a>
+                <a href="/index.html" class="nav-btn btn-primary" style="text-decoration: none;">Create QR</a>
             </div>
         </div>
     </nav>
 
-    <main class="container">
-        <div class="glass-panel view-container" id="content-card">
-            
-            <div class="loader-container" id="loading-state">
-                <div class="spinner"></div>
-                <p>Fetching content securely...</p>
-            </div>
+    <main class="view-main">
+        <div class="view-card">
+            <div class="view-card-inner">
 
-            <div id="error-state" style="display: none; padding: 2rem 0;">
-                <i class="ph-fill ph-warning-circle" style="font-size: 4rem; color: var(--error);"></i>
-                <h2 style="margin: 1rem 0;">Content Not Found</h2>
-                <p class="text-muted">The QR code you scanned might be invalid, expired, or deleted.</p>
-            </div>
-
-            <div id="password-state" style="display: none; padding: 2rem 0;">
-                <i class="ph-fill ph-lock-key" style="font-size: 4rem; color: var(--primary);"></i>
-                <h2 style="margin: 1rem 0;">Password Protected</h2>
-                <p class="text-muted" style="margin-bottom: 2rem;">This content is encrypted. Please enter the password to view it.</p>
-                <div class="input-group" style="max-width: 400px; margin: 0 auto 1.5rem auto;">
-                    <i class="ph ph-lock"></i>
-                    <input type="password" id="unlock-password" placeholder="Enter password">
+                <!-- QR ID Badge -->
+                <div id="qr-id-badge" class="qr-id-badge">
+                    <i class="ph ph-fingerprint"></i> ID: <span id="display-qr-id" class="id-value">...</span>
                 </div>
-                <button class="primary-btn" id="unlock-btn">
-                    <span>Unlock Content</span>
-                    <i class="ph ph-lock-open"></i>
-                </button>
-            </div>
 
-            <div id="success-state" style="display: none;" class="view-content">
-                <h2><i class="ph-fill ph-check-circle" style="color: var(--success);"></i> Scan Successful</h2>
-                <p class="text-muted" id="file-name-display" style="margin-bottom: 1rem;">File Content</p>
-                
-                <div id="media-container"></div>
-            </div>
+                <!-- Loading State -->
+                <div class="loader-container" id="loading-state">
+                    <div id="lottie-loader" style="width: 100px; height: 100px;"></div>
+                    <p>Fetching content securely...</p>
+                </div>
 
+                <!-- Error State -->
+                <div id="error-state" style="display: none;">
+                    <div class="state-icon state-icon-error">
+                        <i class="ph-fill ph-warning-circle"></i>
+                    </div>
+                    <h2 class="view-title">Content Not Found</h2>
+                    <p class="view-subtitle" id="error-message">The QR code you scanned might be invalid, expired, or deleted.</p>
+                    <div id="error-qr-id-container" class="error-report-box" style="display: none;">
+                        <p class="report-label"><i class="ph ph-shield-warning"></i> Report this QR to admin or authorities with this ID:</p>
+                        <div class="report-id" id="error-qr-id"></div>
+                        <p class="report-hint">This ID is permanently linked to the creator's account and IP address for legal tracking purposes.</p>
+                    </div>
+                    <div class="view-actions">
+                        <a href="/index.html" class="view-action-btn"><i class="ph ph-plus-circle"></i> Create New QR</a>
+                        <a href="/scan.html" class="view-action-btn"><i class="ph ph-scan"></i> Scan Another</a>
+                    </div>
+                </div>
+
+                <!-- Password State -->
+                <div id="password-state" style="display: none;">
+                    <div class="state-icon state-icon-lock">
+                        <i class="ph-fill ph-lock-key"></i>
+                    </div>
+                    <h2 class="view-title">Password Protected</h2>
+                    <p class="view-subtitle">This content is encrypted. Enter the password to unlock it.</p>
+                    <div class="password-form">
+                        <div class="password-input-group">
+                            <i class="ph ph-lock"></i>
+                            <input type="password" id="unlock-password" placeholder="Enter password...">
+                        </div>
+                        <button class="unlock-btn" id="unlock-btn">
+                            <i class="ph ph-lock-open"></i>
+                            <span>Unlock Content</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Success State -->
+                <div id="success-state" style="display: none;">
+                    <div class="state-icon state-icon-success">
+                        <i class="ph-fill ph-check-circle"></i>
+                    </div>
+                    <h2 class="view-title">Scan Successful</h2>
+                    <div class="file-name-badge">
+                        <i class="ph ph-file"></i>
+                        <span id="file-name-display">File Content</span>
+                    </div>
+                    <div class="success-content">
+                        <div id="media-container" class="media-container"></div>
+                    </div>
+                    <div class="view-actions">
+                        <a href="/index.html" class="view-action-btn"><i class="ph ph-plus-circle"></i> Create QR</a>
+                        <a href="/scan.html" class="view-action-btn"><i class="ph ph-scan"></i> Scan Another</a>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </main>
+
+    <div class="view-footer">
+        Powered by <a href="/index.html">QR Monkey</a> — Secure QR Code Generator
+    </div>
 
     <script type="module" src="/view.js"></script>
 </body>

@@ -6,9 +6,13 @@
     <title>Dashboard - QR Monkey</title>
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script type="module" src="/mobile.js"></script>
 </head>
 <body class="dashboard-body">
     <div class="background-elements">
@@ -16,17 +20,51 @@
         <div class="blob blob-2"></div>
     </div>
 
+    <!-- Desktop Top Navbar -->
+    <nav class="top-nav desktop-nav-only">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/index.html" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    <img src="/logo.png" alt="QR Monkey" class="nav-logo-img">
+                    <h2 style="color: var(--text-main); margin: 0;">QR <span style="color: var(--primary);">Monkey</span></h2>
+                </a>
+            </div>
+            
+            <div class="nav-auth">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span id="user-email-desktop" class="text-muted" style="font-size: 0.9rem;"></span>
+                    <a href="/scan.html?ref=home" class="nav-btn btn-outline" style="text-decoration: none;"><i class="ph-bold ph-scan"></i> Scan QR</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-dashboard-header">
+        <div class="nav-logo" style="margin:0;">
+            <img src="/logo.png" alt="QR Monkey" class="nav-logo-img">
+            <h2>QR <span>Monkey</span></h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <a href="/scan.html?ref=home" class="mobile-menu-btn" style="display: block; text-decoration: none;">
+                <i class="ph-bold ph-scan"></i>
+            </a>
+            <button class="mobile-menu-btn dashboard-mobile-btn" style="display: block;">
+                <i class="ph ph-list"></i>
+            </button>
+        </div>
+    </div>
+
     <div class="dashboard-layout">
         <!-- Sidebar Navigation -->
-        <aside class="sidebar glass-panel">
-            <div class="sidebar-logo" style="justify-content: center; margin-bottom: 2rem;">
-                <img src="/logo.png" alt="QR Monkey Logo" class="sidebar-logo-img">
-            </div>
+        <aside class="sidebar dashboard-sidebar glass-panel">
             
             <nav class="sidebar-nav">
                 <button class="side-btn active" data-view="generate">
                     <i class="ph ph-qr-code"></i> Generate QR
                 </button>
+                <a href="/scan.html?ref=home" class="side-btn" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="ph-bold ph-scan"></i> Scan QR
+                </a>
                 <button class="side-btn" data-view="customize">
                     <i class="ph ph-paint-brush"></i> Customize QR
                 </button>
@@ -39,7 +77,7 @@
                 <button class="side-btn" data-view="pricing">
                     <i class="ph ph-currency-circle-dollar"></i> Pricing
                 </button>
-                <button class="side-btn" id="view-settings">
+                <button class="side-btn" id="view-settings" data-view="profile">
                     <i class="ph ph-gear"></i> Settings
                 </button>
                 <button class="side-btn" id="upgrade-pro" style="color: var(--primary); font-weight: bold; margin-top: 1rem; border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.1);">
@@ -48,9 +86,8 @@
             </nav>
 
             <div class="sidebar-footer">
-                <div style="display: flex; gap: 1rem;">
-                    <a href="/scan.html" class="nav-btn btn-outline" style="text-decoration: none;"><i class="ph-bold ph-scan"></i> Scan QR</a>
-                    <button id="logout-btn" class="nav-btn secondary-btn">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button id="logout-btn" class="nav-btn secondary-btn" style="width: 100%;">
                         <i class="ph ph-sign-out"></i> Logout
                     </button>
                 </div>
@@ -101,13 +138,13 @@
 
                         <!-- File Upload -->
                         <div class="input-section" id="file-section">
-                            <div class="upload-area" id="drop-zone">
-                                <input type="file" id="file-input" hidden>
+                            <label class="upload-area" id="drop-zone" for="file-input" style="display: block;">
+                                <input type="file" id="file-input" style="display: none;">
                                 <i class="ph ph-cloud-arrow-up upload-icon"></i>
                                 <h3>Drag & Drop your file here</h3>
                                 <p>or click to browse</p>
                                 <span class="file-limits" id="file-helper-text">Supports JPG, PNG, GIF (Max 10MB)</span>
-                            </div>
+                            </label>
                             <div class="file-preview" id="file-preview" style="display: none;">
                                 <i class="ph ph-file file-preview-icon"></i>
                                 <div class="file-info">
@@ -154,11 +191,27 @@
                         </button>
                     </div>
                     
-                    <div class="qr-display">
-                        <div id="qr-code-container"></div>
-                        <div class="loader" id="loading-spinner" style="display: none;">
-                            <div class="spinner"></div>
-                            <p>Uploading to cloud...</p>
+                    <div class="qr-display" style="display: flex; justify-content: center; position: relative;">
+                        <div id="qr-frame-wrapper" style="position: relative; padding: 20px; display: inline-flex; align-items: center; justify-content: center; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 12px; transition: all 0.3s ease;">
+                            <div id="qr-code-container" style="background: white; padding: 8px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                        </div>
+                        <div class="loader" id="loading-spinner" style="display: none; flex-direction: column; align-items: center; gap: 1rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                            <div id="lottie-loader" style="width: 100px; height: 100px;"></div>
+                            <p>Processing...</p>
+                        </div>
+                    </div>
+
+                    <!-- Permanent Prompt -->
+                    <div id="permanent-prompt-panel" style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; text-align: center;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem;"><i class="ph-fill ph-crown"></i> Keep it Forever?</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Free QR codes expire in 72 hrs.</p>
+                        <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                            <button id="result-buy-single-btn" class="nav-btn btn-outline" style="flex: 1; min-width: 140px; padding: 0.5rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                <i class="ph-fill ph-shopping-cart"></i> Pay ₹1
+                            </button>
+                            <button id="result-buy-pro-btn" class="nav-btn btn-primary" style="flex: 1; min-width: 140px; padding: 0.5rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                <i class="ph-fill ph-sparkle"></i> Pro (₹299/mo)
+                            </button>
                         </div>
                     </div>
 
@@ -215,16 +268,233 @@
                 </div>
             </div>
 
-            <!-- Customize QR View -->
+            <!-- Customize QR View — Full QR Design Studio -->
             <div class="dashboard-view" id="view-customize">
                 <header class="view-header">
-                    <h2>Customize QR</h2>
-                    <p>Change colors, add logos, and style your QR codes.</p>
+                    <h2><i class="ph ph-paint-brush"></i> QR Design Studio</h2>
+                    <p>Customize every detail of your QR code with live preview.</p>
                 </header>
-                <div class="glass-panel text-center" style="padding: 4rem 2rem;">
-                    <i class="ph ph-paint-brush" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                    <h3>Coming Soon</h3>
-                    <p class="text-muted">Advanced customization options are currently in development.</p>
+
+                <!-- Quick Templates Bar -->
+                <div class="glass-panel" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.9rem; color: var(--text-muted);"><i class="ph ph-lightning"></i> Quick Templates</h4>
+                    <div class="template-quick-bar" id="template-quick-bar">
+                        <!-- JS will inject template buttons here -->
+                    </div>
+                </div>
+
+                <div class="qr-studio-layout">
+                    <!-- LEFT: Live Preview -->
+                    <div class="qr-live-preview glass-panel">
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1rem;"><i class="ph ph-eye"></i> Live Preview</h3>
+                        <!-- Studio Mode Tabs -->
+                        <div class="studio-mode-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <button class="studio-mode-btn active" data-studio-mode="link" style="flex:1; padding: 0.5rem; border-radius: 8px; border: 2px solid var(--primary); background: rgba(99,102,241,0.15); color: var(--primary); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; transition: all 0.3s;"><i class="ph ph-link"></i> Link</button>
+                            <button class="studio-mode-btn" data-studio-mode="image" style="flex:1; padding: 0.5rem; border-radius: 8px; border: 2px solid transparent; background: rgba(255,255,255,0.05); color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; transition: all 0.3s;"><i class="ph ph-image"></i> Image</button>
+                            <button class="studio-mode-btn" data-studio-mode="file" style="flex:1; padding: 0.5rem; border-radius: 8px; border: 2px solid transparent; background: rgba(255,255,255,0.05); color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; transition: all 0.3s;"><i class="ph ph-file"></i> File</button>
+                        </div>
+                        <div class="studio-preview-input" style="margin-bottom: 1rem;">
+                            <div id="studio-input-link" class="input-group" style="margin-bottom: 0;">
+                                <i class="ph ph-link"></i>
+                                <input type="text" id="studio-preview-url" placeholder="Paste your URL here..." value="">
+                            </div>
+                            <div id="studio-input-file" style="display: none;">
+                                <label class="studio-file-upload" style="margin: 0;">
+                                    <input type="file" id="studio-file-input" accept="image/*,.pdf,.doc,.docx,.txt" style="display: none;">
+                                    <i class="ph ph-cloud-arrow-up" style="font-size: 1.5rem; color: var(--primary);"></i>
+                                    <span id="studio-file-label">Click to upload Image or File</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="studio-preview-frame" class="studio-preview-frame">
+                            <div id="studio-preview-bg-overlay" class="studio-preview-bg-overlay"></div>
+                            <div id="studio-preview-qr" class="studio-preview-qr">
+                                <p id="studio-empty-msg" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 2rem 1rem;"><i class="ph ph-qr-code" style="font-size: 3rem; display: block; margin-bottom: 0.75rem; opacity: 0.3;"></i>Enter your Link, Image, or File above to generate a live QR preview</p>
+                            </div>
+                        </div>
+                        <!-- Scanability Meter -->
+                        <div id="scanability-meter" class="glass-panel" style="margin-top: 0.75rem; padding: 0.75rem 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+                                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);"><i class="ph ph-scan"></i> Scan Quality</span>
+                                <span id="scan-score-text" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">—</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                <div id="scan-score-bar" style="width: 0%; height: 100%; border-radius: 3px; background: var(--primary); transition: width 0.5s ease, background 0.5s ease;"></div>
+                            </div>
+                            <p id="scan-score-hint" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.35rem;">Generate a QR to check scan quality</p>
+                        </div>
+                        <div class="studio-preview-actions" style="margin-top: 1rem;">
+                            <button id="studio-download-btn" class="secondary-btn" style="flex: 1;">
+                                <i class="ph ph-download-simple"></i> Download
+                            </button>
+                            <button id="studio-share-btn" class="secondary-btn" style="flex: 1;">
+                                <i class="ph ph-share-network"></i> Share
+                            </button>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center;"><i class="ph ph-info"></i> These settings will also apply when you generate QR codes from the "Generate QR" tab.</p>
+                    </div>
+
+                    <!-- RIGHT: Controls Panel -->
+                    <div class="qr-controls-panel">
+
+                        <!-- Section: Dot Style -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-circles-four"></i> Dot Style</h4>
+                            <div class="style-grid" id="dot-style-grid" style="grid-template-columns: repeat(3, 1fr);">
+                                <button class="style-option active" data-value="rounded" title="Rounded"><svg viewBox="0 0 40 40"><rect x="2" y="2" width="16" height="16" rx="5" fill="currentColor"/><rect x="22" y="2" width="16" height="16" rx="5" fill="currentColor"/><rect x="2" y="22" width="16" height="16" rx="5" fill="currentColor"/></svg><span>Rounded</span></button>
+                                <button class="style-option" data-value="dots" title="Circle"><svg viewBox="0 0 40 40"><circle cx="10" cy="10" r="8" fill="currentColor"/><circle cx="30" cy="10" r="8" fill="currentColor"/><circle cx="10" cy="30" r="8" fill="currentColor"/></svg><span>Circle</span></button>
+                                <button class="style-option" data-value="classy" title="Classy"><svg viewBox="0 0 40 40"><rect x="2" y="2" width="16" height="16" fill="currentColor"/><rect x="22" y="2" width="16" height="16" fill="currentColor" transform="rotate(45 30 10)"/><rect x="2" y="22" width="16" height="16" fill="currentColor"/></svg><span>Classy</span></button>
+                                <button class="style-option" data-value="classy-rounded" title="Classy Rounded"><svg viewBox="0 0 40 40"><rect x="2" y="2" width="16" height="16" rx="3" fill="currentColor"/><rect x="22" y="2" width="16" height="16" rx="8" fill="currentColor"/><rect x="2" y="22" width="16" height="16" rx="3" fill="currentColor"/></svg><span>Smooth</span></button>
+                                <button class="style-option" data-value="square" title="Square"><svg viewBox="0 0 40 40"><rect x="2" y="2" width="16" height="16" fill="currentColor"/><rect x="22" y="2" width="16" height="16" fill="currentColor"/><rect x="2" y="22" width="16" height="16" fill="currentColor"/></svg><span>Square</span></button>
+                                <button class="style-option" data-value="extra-rounded" title="Pill"><svg viewBox="0 0 40 40"><rect x="2" y="2" width="16" height="16" rx="8" fill="currentColor"/><rect x="22" y="2" width="16" height="16" rx="8" fill="currentColor"/><rect x="2" y="22" width="16" height="16" rx="8" fill="currentColor"/></svg><span>Pill</span></button>
+                                <button class="style-option" data-value="dots" data-custom-shape="heart" title="Heart"><svg viewBox="0 0 40 40"><path d="M10 16 C10 10, 2 10, 2 16 C2 22, 10 26, 10 26 C10 26, 18 22, 18 16 C18 10, 10 10, 10 16Z" fill="currentColor"/><path d="M30 16 C30 10, 22 10, 22 16 C22 22, 30 26, 30 26 C30 26, 38 22, 38 16 C38 10, 30 10, 30 16Z" fill="currentColor"/></svg><span>Heart</span></button>
+                                <button class="style-option" data-value="classy" data-custom-shape="diamond" title="Diamond"><svg viewBox="0 0 40 40"><polygon points="10,2 18,10 10,18 2,10" fill="currentColor"/><polygon points="30,2 38,10 30,18 22,10" fill="currentColor"/><polygon points="10,22 18,30 10,38 2,30" fill="currentColor"/></svg><span>Diamond</span></button>
+                                <button class="style-option" data-value="square" data-custom-shape="triangle" title="Triangle"><svg viewBox="0 0 40 40"><polygon points="10,2 18,18 2,18" fill="currentColor"/><polygon points="30,2 38,18 22,18" fill="currentColor"/><polygon points="10,22 18,38 2,38" fill="currentColor"/></svg><span>Triangle</span></button>
+                            </div>
+                            <div class="color-picker-group">
+                                <label>Dot Color</label>
+                                <div class="color-input-wrap">
+                                    <input type="color" id="dot-color" value="#4f46e5">
+                                    <input type="text" id="dot-color-text" value="#4f46e5" maxlength="7" class="color-hex-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Corner Square -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-bounding-box"></i> Corner Square Style</h4>
+                            <div class="style-grid style-grid-small" id="corner-sq-style-grid">
+                                <button class="style-option active" data-value="extra-rounded" title="Extra Rounded"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="10" stroke="currentColor" stroke-width="4" fill="none"/></svg><span>Rounded</span></button>
+                                <button class="style-option" data-value="dot" title="Dot"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" stroke="currentColor" stroke-width="4" fill="none"/></svg><span>Dot</span></button>
+                                <button class="style-option" data-value="square" title="Square"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" stroke="currentColor" stroke-width="4" fill="none"/></svg><span>Square</span></button>
+                            </div>
+                            <div class="color-picker-group">
+                                <label>Corner Square Color</label>
+                                <div class="color-input-wrap">
+                                    <input type="color" id="corner-sq-color" value="#1e293b">
+                                    <input type="text" id="corner-sq-color-text" value="#1e293b" maxlength="7" class="color-hex-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Corner Dot -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-dot-outline"></i> Corner Dot Style</h4>
+                            <div class="style-grid style-grid-small" id="corner-dot-style-grid">
+                                <button class="style-option active" data-value="dot" title="Dot"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" fill="currentColor"/></svg><span>Dot</span></button>
+                                <button class="style-option" data-value="square" title="Square"><svg viewBox="0 0 40 40"><rect x="8" y="8" width="24" height="24" fill="currentColor"/></svg><span>Square</span></button>
+                            </div>
+                            <div class="color-picker-group">
+                                <label>Corner Dot Color</label>
+                                <div class="color-input-wrap">
+                                    <input type="color" id="corner-dot-color" value="#1e293b">
+                                    <input type="text" id="corner-dot-color-text" value="#1e293b" maxlength="7" class="color-hex-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Background -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-paint-bucket"></i> QR Background</h4>
+                            <div class="color-picker-group">
+                                <label>Background Color</label>
+                                <div class="color-input-wrap">
+                                    <input type="color" id="qr-bg-color" value="#ffffff">
+                                    <input type="text" id="qr-bg-color-text" value="#ffffff" maxlength="7" class="color-hex-input">
+                                    <label class="transparent-toggle" title="Make transparent">
+                                        <input type="checkbox" id="qr-bg-transparent">
+                                        <span style="font-size: 0.8rem; white-space: nowrap;">Transparent</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Background Image -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-image"></i> Background Image (Behind QR)</h4>
+                            <label class="studio-file-upload" id="bg-image-drop">
+                                <input type="file" id="bg-image-input" accept="image/*" style="display: none;">
+                                <i class="ph ph-cloud-arrow-up" style="font-size: 1.5rem; color: var(--primary);"></i>
+                                <span>Click to upload (Max 2MB)</span>
+                            </label>
+                            <div id="bg-image-preview" style="display: none; margin-top: 0.75rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <img id="bg-image-thumb" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid var(--glass-border);">
+                                    <span id="bg-image-name" style="flex: 1; font-size: 0.85rem; color: var(--text-main);"></span>
+                                    <button id="bg-image-remove" class="style-option" style="width: 30px; height: 30px; min-width: 30px; padding: 0; color: var(--error);" title="Remove"><i class="ph ph-x"></i></button>
+                                </div>
+                            </div>
+                            <div class="range-group" style="margin-top: 0.75rem;">
+                                <label>Opacity: <span id="bg-opacity-val">30</span>%</label>
+                                <input type="range" id="bg-image-opacity" min="5" max="100" value="30" class="range-slider">
+                            </div>
+                        </div>
+
+                        <!-- Section: Center Logo -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-star"></i> Center Logo</h4>
+                            <label class="studio-file-upload" id="logo-image-drop">
+                                <input type="file" id="logo-image-input" accept="image/*" style="display: none;">
+                                <i class="ph ph-cloud-arrow-up" style="font-size: 1.5rem; color: var(--primary);"></i>
+                                <span>Click to upload logo (Max 2MB)</span>
+                            </label>
+                            <div id="logo-image-preview" style="display: none; margin-top: 0.75rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <img id="logo-image-thumb" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid var(--glass-border);">
+                                    <span id="logo-image-name" style="flex: 1; font-size: 0.85rem; color: var(--text-main);"></span>
+                                    <button id="logo-image-remove" class="style-option" style="width: 30px; height: 30px; min-width: 30px; padding: 0; color: var(--error);" title="Remove"><i class="ph ph-x"></i></button>
+                                </div>
+                            </div>
+                            <div class="range-group" style="margin-top: 0.75rem;">
+                                <label>Logo Size: <span id="logo-size-val">20</span>%</label>
+                                <input type="range" id="logo-size" min="10" max="40" value="20" class="range-slider">
+                            </div>
+                        </div>
+
+                        <!-- Section: Frame -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-frame-corners"></i> Frame</h4>
+                            <div class="color-picker-group">
+                                <label>Frame Background</label>
+                                <div class="color-input-wrap">
+                                    <input type="color" id="frame-bg-color" value="#0f172a">
+                                    <input type="text" id="frame-bg-color-text" value="#0f172a" maxlength="7" class="color-hex-input">
+                                    <label class="transparent-toggle" title="No frame">
+                                        <input type="checkbox" id="frame-bg-none" checked>
+                                        <span style="font-size: 0.8rem; white-space: nowrap;">No Frame</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="range-group" style="margin-top: 0.75rem;">
+                                <label>Frame Padding: <span id="frame-padding-val">20</span>px</label>
+                                <input type="range" id="frame-padding" min="0" max="60" value="20" class="range-slider">
+                            </div>
+                            <div class="range-group" style="margin-top: 0.75rem;">
+                                <label>Frame Radius: <span id="frame-radius-val">12</span>px</label>
+                                <input type="range" id="frame-radius" min="0" max="40" value="12" class="range-slider">
+                            </div>
+                        </div>
+
+                        <!-- Section: Advanced -->
+                        <div class="control-section glass-panel">
+                            <h4 class="control-title"><i class="ph ph-gear-six"></i> Advanced</h4>
+                            <div class="range-group">
+                                <label>QR Size: <span id="qr-size-val">250</span>px</label>
+                                <input type="range" id="qr-size" min="150" max="400" value="250" step="10" class="range-slider">
+                            </div>
+                            <div class="select-group" style="margin-top: 0.75rem;">
+                                <label>Error Correction</label>
+                                <select id="qr-error-correction" class="studio-select">
+                                    <option value="L">Low (L) — 7% recovery</option>
+                                    <option value="M" selected>Medium (M) — 15% recovery</option>
+                                    <option value="Q">Quartile (Q) — 25% recovery</option>
+                                    <option value="H">High (H) — 30% recovery (best for logos)</option>
+                                </select>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;"><i class="ph ph-info"></i> Use High (H) when adding a center logo for reliable scanning.</p>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
@@ -248,12 +518,45 @@
             <div class="dashboard-view" id="view-pricing">
                 <header class="view-header">
                     <h2>Pricing Plans</h2>
-                    <p>Upgrade to Pro for limitless possibilities.</p>
+                    <p>Choose the right plan to keep your QR codes active forever.</p>
                 </header>
-                <div class="glass-panel text-center" style="padding: 4rem 2rem;">
-                    <i class="ph ph-currency-circle-dollar" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                    <h3>Pro Plan Available Soon</h3>
-                    <p class="text-muted">You are currently on the Free Tier.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                    
+                    <!-- Single QR Card -->
+                    <div class="glass-panel" style="display: flex; flex-direction: column; padding: 2rem; border-radius: 16px;">
+                        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Pay-per-QR</h3>
+                        <div style="margin-bottom: 1.5rem;">
+                            <span style="font-size: 2.5rem; font-weight: 700; color: var(--text-main);">₹1</span>
+                            <span class="text-muted">/ QR Code</span>
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Perfect for one-off needs. Secure your most important QR codes permanently.</p>
+                        <ul style="list-style: none; padding: 0; margin: 0 0 2rem 0; flex-grow: 1;">
+                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;"><i class="ph-fill ph-check-circle" style="color: var(--success);"></i> 1 QR Code saved forever</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;"><i class="ph-fill ph-check-circle" style="color: var(--success);"></i> 100% Guaranteed Uptime</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;"><i class="ph-fill ph-check-circle" style="color: var(--success);"></i> Never Expires</li>
+                        </ul>
+                        <button id="buy-single-qr-btn" class="nav-btn btn-outline" style="width: 100%; justify-content: center; padding: 0.75rem;">Purchase Single QR</button>
+                    </div>
+
+                    <!-- Pro Subscription Card -->
+                    <div class="glass-panel" style="display: flex; flex-direction: column; padding: 2rem; border: 2px solid var(--primary); border-radius: 16px; position: relative; background: rgba(59, 130, 246, 0.05);">
+                        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 4px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;">RECOMMENDED</div>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Pro Monthly</h3>
+                        <div style="margin-bottom: 1.5rem;">
+                            <span style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">₹299</span>
+                            <span class="text-muted">/ month</span>
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Ultimate freedom for power users and businesses. Generate unlimited codes.</p>
+                        <ul style="list-style: none; padding: 0; margin: 0 0 2rem 0; flex-grow: 1;">
+                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;"><i class="ph-fill ph-check-circle" style="color: var(--primary);"></i> Unlimited QR code generation</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;"><i class="ph-fill ph-check-circle" style="color: var(--primary);"></i> All QR codes saved forever</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;"><i class="ph-fill ph-check-circle" style="color: var(--primary);"></i> 100% Guaranteed Uptime</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;"><i class="ph-fill ph-check-circle" style="color: var(--primary);"></i> No Expiration Dates</li>
+                        </ul>
+                        <button id="buy-pro-plan-btn" class="nav-btn btn-primary" style="width: 100%; justify-content: center; background: var(--primary); color: white; border: none; padding: 0.75rem;">Subscribe at ₹299</button>
+                    </div>
+
                 </div>
             </div>
 
@@ -278,6 +581,15 @@
                             <p id="profile-created">...</p>
                         </div>
                     </div>
+                    
+                    <!-- Danger Zone -->
+                    <div style="margin-top: 2rem; border-top: 1px solid rgba(239, 68, 68, 0.3); padding-top: 1.5rem;">
+                        <h4 style="color: var(--error); margin-bottom: 0.5rem;"><i class="ph ph-warning"></i> Danger Zone</h4>
+                        <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                        <button id="delete-account-btn" class="secondary-btn" style="color: var(--error); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); width: 100%; justify-content: center;">
+                            <i class="ph-bold ph-trash"></i> Delete Account
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -285,5 +597,6 @@
     </div>
 
     <script type="module" src="/home.js"></script>
+    <script type="module" src="/pay.js"></script>
 </body>
 </html>

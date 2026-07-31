@@ -1,7 +1,20 @@
-import { db } from './firebase-config.js';
-import { ref, get, remove } from "firebase/database";
+import { db, storage } from './firebase-config.js';
+import { ref, get, update } from "firebase/database";
+import { ref as storageRef, deleteObject } from "firebase/storage";
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Lottie Loader if container exists
+    const lottieContainer = document.getElementById('lottie-loader');
+    if (lottieContainer) {
+        lottie.loadAnimation({
+            container: lottieContainer,
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: '/lottie-loading.json'
+        });
+    }
+
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
     const successState = document.getElementById('success-state');
@@ -14,8 +27,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const scanId = params.get('id');
 
     if (!scanId) {
-        showError();
+        showError("Invalid QR Code Link.");
         return;
+    }
+    
+    // Always show the QR ID badge at the top right
+    const qrIdBadge = document.getElementById('qr-id-badge');
+    const displayQrId = document.getElementById('display-qr-id');
+    if (qrIdBadge && displayQrId) {
+        displayQrId.textContent = scanId;
+        qrIdBadge.style.display = 'block';
     }
 
     try {
@@ -25,11 +46,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (snapshot.exists()) {
             const data = snapshot.val();
             
-            // Check expiry
-            if (data.expiresAt && Date.now() > data.expiresAt) {
-                // Delete from Firebase!
-                remove(scanRef);
-                showError("This Free-Tier QR Code has expired (72 hours limit) and was deleted.");
+            // Check expiry or if manually soft-deleted
+            if (data.deleted || (data.expiresAt && Date.now() > data.expiresAt)) {
+                
+                // Soft delete if not already marked
+                if (!data.deleted) {
+                    if (data.storagePath) {
+                        try {
+                            await deleteObject(storageRef(storage, data.storagePath));
+                        } catch(err) { console.error("Storage delete error", err); }
+                    }
+                    
+                    await update(scanRef, {
+                        data: null,
+                        storagePath: null,
+                        deleted: true,
+                        expired: true
+                    });
+                }
+
+                showError(`Sorry, this QR Code has expired. But this QR ID is <strong>${scanId}</strong>.<br><br>Contact <a href="/" style="color:var(--primary); text-decoration:underline;">QR Monkey</a> for any query.`);
                 return;
             }
 
@@ -46,14 +82,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         showError();
     }
 
-    function showError(customMessage) {
+    function showError(message = null) {
         loadingState.style.display = 'none';
-        successState.style.display = 'none';
         if(passwordState) passwordState.style.display = 'none';
+        successState.style.display = 'none';
         errorState.style.display = 'block';
-        if(customMessage) {
-            const errP = errorState.querySelector('p');
-            if(errP) errP.textContent = customMessage;
+        
+        if (message) {
+            const errorMsgEl = document.getElementById('error-message');
+            if (errorMsgEl) errorMsgEl.innerHTML = message;
+        }
+
+        // Show the ID for reporting
+        if (scanId) {
+            const errorQrIdContainer = document.getElementById('error-qr-id-container');
+            const errorQrId = document.getElementById('error-qr-id');
+            if (errorQrIdContainer && errorQrId) {
+                errorQrId.textContent = scanId;
+                errorQrIdContainer.style.display = 'block';
+            }
         }
     }
 
@@ -89,22 +136,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data.type === 'image') {
             mediaContainer.innerHTML = `<img src="${data.data}" alt="Scanned Image">`;
         } else {
-            // Document or URL
-            // Since we stored it as base64, we can create a download link or display it if it's a URL
             if(data.type === 'document' && data.data.startsWith('data:')) {
                 mediaContainer.innerHTML = `
                     <a href="${data.data}" download="${data.filename}" class="doc-download">
-                        <i class="ph-fill ph-file-pdf"></i>
-                        <div>
-                            <strong style="display:block; text-align:left;">Download File</strong>
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">${data.filename}</span>
+                        <div class="doc-icon-wrap">
+                            <i class="ph-fill ph-file-arrow-down"></i>
+                        </div>
+                        <div class="doc-info">
+                            <strong>Download File</strong>
+                            <span>${data.filename}</span>
+                        </div>
+                        <div class="doc-download-icon">
+                            <i class="ph ph-download-simple"></i>
                         </div>
                     </a>
                 `;
             } else {
                 mediaContainer.innerHTML = `
-                    <div style="margin-top: 2rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                        <p style="word-break: break-all;">${data.data}</p>
+                    <div class="text-content-box">
+                        <p>${data.data}</p>
                     </div>
                 `;
             }

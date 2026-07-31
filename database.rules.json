@@ -34,6 +34,25 @@
         ".read": "$uid === auth.uid",
         ".write": "$uid === auth.uid"
       }
+    },
+    
+    "deleted_users": {
+      "$uid": {
+        // No one can read this data except Admin
+        ".read": false,
+        // The user can create this record when deleting their account
+        ".write": "$uid === auth.uid && !data.exists()"
+      }
+    },
+    
+    "qr_logs": {
+      "$scanId": {
+        // No one can read logs except Admin
+        ".read": false,
+        // Only allow creating a log (not updating/deleting) if authenticated and uid matches
+        ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid",
+        ".validate": "newData.hasChildren(['uid', 'ip_address', 'timestamp'])"
+      }
     }
   }
 }

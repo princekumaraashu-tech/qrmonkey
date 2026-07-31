@@ -8,10 +8,12 @@
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <!-- Phosphor Icons for premium look -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script type="module" src="/mobile.js"></script>
 </head>
 <body>
     <div class="background-elements">
@@ -27,6 +29,12 @@
                 <h2>QR <span>Monkey</span></h2>
             </div>
             
+            <div class="nav-links" style="display: flex; gap: 1.5rem; align-items: center; margin-left: auto; margin-right: 2rem;">
+                <a href="#features" style="color: var(--text-main); text-decoration: none; font-weight: 500; transition: color 0.3s;">Features</a>
+                <a href="#how-it-works" style="color: var(--text-main); text-decoration: none; font-weight: 500; transition: color 0.3s;">How it Works</a>
+                <a href="#use-cases" style="color: var(--text-main); text-decoration: none; font-weight: 500; transition: color 0.3s;">Use Cases</a>
+            </div>
+            
             <div class="nav-auth" id="nav-auth-section">
                 <!-- Logged Out State -->
                 <div id="logged-out-state" style="display: flex; gap: 10px;">
@@ -38,15 +46,28 @@
                 </div>
                 <!-- Logged In State -->
                 <div id="logged-in-state" style="display: none; align-items: center; gap: 15px;">
-                    <div class="user-profile">
-                        <div class="user-avatar"><i class="ph ph-user"></i></div>
-                        <span id="user-email-display">user@example.com</span>
-                    </div>
-                    <button class="nav-btn btn-primary" id="nav-dashboard-btn">Dashboard</button>
-                    <button class="nav-btn btn-outline" id="nav-logout-btn">
-                        <i class="ph ph-sign-out"></i>
-                    </button>
+                    <span id="user-email" class="text-muted" style="font-size: 0.9rem;"></span>
+                    <a href="/home.html" class="nav-btn primary-btn" style="text-decoration: none;">Dashboard</a>
                 </div>
+            </div>
+
+            <!-- Mobile Hamburger Menu Button -->
+            <button class="mobile-menu-btn">
+                <i class="ph ph-list"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Nav Dropdown -->
+        <div class="mobile-nav-dropdown">
+            <div class="nav-links" style="display: flex; gap: 1rem; align-items: center; flex-direction: column;">
+                <a href="#features" style="color: var(--text-main); text-decoration: none; font-weight: 500;">Features</a>
+                <a href="#how-it-works" style="color: var(--text-main); text-decoration: none; font-weight: 500;">How it Works</a>
+                <a href="#use-cases" style="color: var(--text-main); text-decoration: none; font-weight: 500;">Use Cases</a>
+            </div>
+            
+            <div class="nav-actions" style="display: flex; gap: 1rem; align-items: center; flex-direction: column; margin-top: 1rem;">
+                <a href="/scan.html" class="nav-btn btn-outline" style="text-decoration: none; width: 100%; justify-content: center;"><i class="ph-bold ph-scan"></i> Scan QR</a>
+                <a href="/home.html" class="nav-btn primary-btn" id="mobile-dash-btn" style="text-decoration: none; width: 100%; justify-content: center;">Go to Dashboard</a>
             </div>
         </div>
     </nav>
@@ -54,6 +75,11 @@
     <main class="container hero-container">
         <section class="hero-section">
             <div class="hero-copy">
+                <div class="live-user-badge" style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; padding: 6px 16px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 50px; color: var(--primary); font-size: 0.9rem; font-weight: 600;">
+                    <span style="display: block; width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); animation: pulse 2s infinite;"></span>
+                    <span id="live-user-number">1,245</span> users are creating QR codes right now
+                </div>
+
                 <div class="hero-badge">
                     <i class="ph ph-sparkle"></i>
                     Smart QR generation for modern brands
@@ -76,6 +102,11 @@
                     <div class="highlight-pill"><i class="ph ph-bolt"></i> Instant</div>
                     <div class="highlight-pill"><i class="ph ph-shield-check"></i> Secure</div>
                     <div class="highlight-pill"><i class="ph ph-share-network"></i> Shareable</div>
+                </div>
+                
+                <div style="margin-top: 1.5rem; display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 8px 20px; border-radius: 12px; color: white; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); border: 1px solid rgba(255,255,255,0.2); animation: float 3s ease-in-out infinite;">
+                    <i class="ph-fill ph-magic-wand" style="font-size: 1.2rem; color: #fbbf24;"></i>
+                    100% Unlimited QR Customizations Free!
                 </div>
             </div>
 
@@ -109,13 +140,13 @@
                         </div>
 
                         <div class="input-section" id="file-section">
-                            <div class="upload-area" id="drop-zone">
-                                <input type="file" id="file-input" hidden>
+                            <label class="upload-area" id="drop-zone" for="file-input" style="display: block;">
+                                <input type="file" id="file-input" style="display: none;">
                                 <i class="ph ph-cloud-arrow-up upload-icon"></i>
                                 <h3>Drag & Drop your file here</h3>
                                 <p>or click to browse</p>
                                 <span class="file-limits" id="file-helper-text">Supports JPG, PNG, GIF (Max 10MB)</span>
-                            </div>
+                            </label>
                             <div class="file-preview" id="file-preview" style="display: none;">
                                 <i class="ph ph-file file-preview-icon"></i>
                                 <div class="file-info">
@@ -151,6 +182,38 @@
                         <i class="ph ph-magic-wand"></i>
                     </button>
                 </div>
+                <!-- Result Panel moved here -->
+                <div class="glass-panel result-panel" id="result-panel" style="display: none; margin-top: 2rem;">
+                    <div class="result-header">
+                        <h2>Your QR Code is Ready!</h2>
+                        <button class="close-result" id="close-result">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="qr-display">
+                        <div id="qr-code-container"></div>
+                        <div class="loader" id="loading-spinner" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                            <div id="lottie-loader" style="width: 100px; height: 100px;"></div>
+                            <p>Uploading to cloud...</p>
+                        </div>
+                    </div>
+
+                    <div class="qr-actions" id="qr-actions" style="display: none; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+                        <button id="download-btn" class="secondary-btn">
+                            <i class="ph ph-download-simple"></i> Download QR
+                        </button>
+                        <button id="share-qr-btn" class="secondary-btn">
+                            <i class="ph ph-share-network"></i> Share QR
+                        </button>
+                        <button id="copy-link-btn" class="secondary-btn">
+                            <i class="ph ph-copy"></i> Copy Link
+                        </button>
+                        <a id="share-link" class="share-link" href="#" target="_blank" style="width: 100%; text-align: center; margin-top: 0.5rem;">
+                            <i class="ph ph-arrow-square-out"></i> Open Link
+                        </a>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -162,17 +225,62 @@
 
             <div class="feature-grid">
                 <article class="feature-card">
-                    <div class="feature-icon"><i class="ph ph-bolt"></i></div>
+                    <div class="feature-icon" style="background: transparent;">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="12" fill="url(#paint0_linear_bolt)" fill-opacity="0.1"/>
+                            <path d="M26 10L14 26H24L22 38L34 22H24L26 10Z" fill="url(#paint1_linear_bolt)"/>
+                            <defs>
+                                <linearGradient id="paint0_linear_bolt" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#6366F1"/>
+                                    <stop offset="1" stop-color="#A855F7"/>
+                                </linearGradient>
+                                <linearGradient id="paint1_linear_bolt" x1="24" y1="10" x2="24" y2="38" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#6366F1"/>
+                                    <stop offset="1" stop-color="#A855F7"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
                     <h3>Lightning quick</h3>
                     <p>Create polished QR codes in seconds with zero setup.</p>
                 </article>
                 <article class="feature-card">
-                    <div class="feature-icon"><i class="ph ph-shield-check"></i></div>
+                    <div class="feature-icon" style="background: transparent;">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="12" fill="url(#paint0_linear_shield)" fill-opacity="0.1"/>
+                            <path d="M24 10L14 14V22C14 29.55 18.25 36.58 24 38.83C29.75 36.58 34 29.55 34 22V14L24 10ZM21.9 29.5L17.4 25L18.81 23.59L21.9 26.67L29.19 19.38L30.6 20.8L21.9 29.5Z" fill="url(#paint1_linear_shield)"/>
+                            <defs>
+                                <linearGradient id="paint0_linear_shield" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#10B981"/>
+                                    <stop offset="1" stop-color="#3B82F6"/>
+                                </linearGradient>
+                                <linearGradient id="paint1_linear_shield" x1="24" y1="10" x2="24" y2="38.83" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#10B981"/>
+                                    <stop offset="1" stop-color="#3B82F6"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
                     <h3>Secure by design</h3>
                     <p>Protect sensitive content with optional password encryption.</p>
                 </article>
                 <article class="feature-card">
-                    <div class="feature-icon"><i class="ph ph-device-mobile"></i></div>
+                    <div class="feature-icon" style="background: transparent;">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="12" fill="url(#paint0_linear_mobile)" fill-opacity="0.1"/>
+                            <path d="M30 8H18C16.9 8 16 8.9 16 10V38C16 39.1 16.9 40 18 40H30C31.1 40 32 39.1 32 38V10C32 8.9 31.1 8 30 8ZM24 37C22.9 37 22 36.1 22 35C22 33.9 22.9 33 24 33C25.1 33 26 33.9 26 35C26 36.1 25.1 37 24 37ZM30 31H18V13H30V31Z" fill="url(#paint1_linear_mobile)"/>
+                            <defs>
+                                <linearGradient id="paint0_linear_mobile" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#F59E0B"/>
+                                    <stop offset="1" stop-color="#EF4444"/>
+                                </linearGradient>
+                                <linearGradient id="paint1_linear_mobile" x1="24" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#F59E0B"/>
+                                    <stop offset="1" stop-color="#EF4444"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
                     <h3>Built for every screen</h3>
                     <p>Share QR codes seamlessly across web, print, and mobile.</p>
                 </article>
@@ -194,37 +302,61 @@
             </div>
         </section>
 
-        <div class="glass-panel result-panel" id="result-panel" style="display: none; margin-top: 2rem;">
-            <div class="result-header">
-                <h2>Your QR Code is Ready!</h2>
-                <button class="close-result" id="close-result">
-                    <i class="ph ph-x"></i>
-                </button>
+        <!-- How it Works Section -->
+        <section class="how-it-works-section" id="how-it-works">
+            <div class="section-heading text-center">
+                <p class="section-eyebrow">Simple Process</p>
+                <h2>How to generate your QR Code</h2>
             </div>
-            
-            <div class="qr-display">
-                <div id="qr-code-container"></div>
-                <div class="loader" id="loading-spinner" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Uploading to cloud...</p>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h3>Select Format</h3>
+                    <p>Choose between a Website URL, Image, or Document upload.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h3>Customize & Encrypt</h3>
+                    <p>Add a password to secure your content from unauthorized scanning.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h3>Download & Share</h3>
+                    <p>Get a high-quality PNG of your QR code instantly.</p>
                 </div>
             </div>
+        </section>
 
-            <div class="qr-actions" id="qr-actions" style="display: none; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
-                <button id="download-btn" class="secondary-btn">
-                    <i class="ph ph-download-simple"></i> Download QR
-                </button>
-                <button id="share-qr-btn" class="secondary-btn">
-                    <i class="ph ph-share-network"></i> Share QR
-                </button>
-                <button id="copy-link-btn" class="secondary-btn">
-                    <i class="ph ph-copy"></i> Copy Link
-                </button>
-                <a id="share-link" class="share-link" href="#" target="_blank" style="width: 100%; text-align: center; margin-top: 0.5rem;">
-                    <i class="ph ph-arrow-square-out"></i> Open Link
-                </a>
+        <!-- Use Cases Section -->
+        <section class="use-cases-section" id="use-cases">
+            <div class="section-heading text-center">
+                <p class="section-eyebrow">Endless Possibilities</p>
+                <h2>Who is this for?</h2>
             </div>
-        </div>
+            <div class="use-cases-grid">
+                <div class="use-case-card glass-panel">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 1rem;">
+                        <path d="M34 10H6C4.9 10 4 10.9 4 12V30C4 31.1 4.9 32 6 32H34C35.1 32 36 31.1 36 30V12C36 10.9 35.1 10 34 10ZM34 30H6V16H34V30ZM18 20H10V28H18V20ZM30 20H22V23H30V20ZM30 25H22V28H30V25Z" fill="#F43F5E"/>
+                    </svg>
+                    <h3>Restaurants & Cafes</h3>
+                    <p>Create digital menus by uploading a PDF. Update it anytime without re-printing.</p>
+                </div>
+                <div class="use-case-card glass-panel">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 1rem;">
+                        <path d="M30 10H24V6C24 4.9 23.1 4 22 4H18C16.9 4 16 4.9 16 6V10H10C8.9 10 8.01 10.9 8.01 12L8 34C8 35.1 8.9 36 10 36H30C31.1 36 32 35.1 32 34V12C32 10.9 31.1 10 30 10ZM20 6H22V10H20V6ZM30 34H10V14H30V34ZM18 20H22V24H18V20Z" fill="#8B5CF6"/>
+                    </svg>
+                    <h3>Professionals</h3>
+                    <p>Share your portfolio, resume, or digital vCard instantly at networking events.</p>
+                </div>
+                <div class="use-case-card glass-panel">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 1rem;">
+                        <path d="M20 2C13.4 2 8 7.4 8 14V18C5.8 18 4 19.8 4 22V36C4 38.2 5.8 40 8 40H32C34.2 40 36 38.2 36 36V22C36 19.8 34.2 18 32 18V14C32 7.4 26.6 2 20 2ZM20 6C24.4 6 28 9.6 28 14V18H12V14C12 9.6 15.6 6 20 6ZM20 33C17.8 33 16 31.2 16 29C16 26.8 17.8 25 20 25C22.2 25 24 26.8 24 29C24 31.2 22.2 33 20 33Z" fill="#10B981"/>
+                    </svg>
+                    <h3>Personal Security</h3>
+                    <p>Share private photos or documents safely using AES-256 password protection.</p>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Auth Modal Overlay -->
@@ -270,6 +402,99 @@
         </div>
     </div>
 
+    <footer class="site-footer">
+        <div class="footer-container" style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem; padding-bottom: 3rem;">
+            <div>
+                <div class="nav-logo" style="margin-bottom: 1rem;">
+                    <img src="/logo.png" alt="QR Monkey" class="nav-logo-img">
+                    <h2 style="font-size: 1.5rem;">QR <span>Monkey</span></h2>
+                </div>
+                <p style="color: var(--text-muted); line-height: 1.6;">The most advanced and beautifully designed QR code generator. Share links, images, and documents securely.</p>
+            </div>
+            
+            <div>
+                <h3 style="color: white; margin-bottom: 1.5rem; font-size: 1.1rem;">Quick Links</h3>
+                <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.8rem;">
+                    <li><a href="#features" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s;">Features</a></li>
+                    <li><a href="/scan.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s;">Scan QR</a></li>
+                    <li><a href="/home.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s;">Dashboard</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 style="color: white; margin-bottom: 1.5rem; font-size: 1.1rem;">Connect</h3>
+                <div class="social-links" style="display: flex; gap: 1rem;">
+                    <a href="#" style="color: var(--text-muted); font-size: 1.5rem; transition: color 0.3s;"><i class="ph-fill ph-twitter-logo"></i></a>
+                    <a href="#" style="color: var(--text-muted); font-size: 1.5rem; transition: color 0.3s;"><i class="ph-fill ph-instagram-logo"></i></a>
+                    <a href="#" style="color: var(--text-muted); font-size: 1.5rem; transition: color 0.3s;"><i class="ph-fill ph-github-logo"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 QR Monkey. All rights reserved.</p>
+            <div style="display: flex; gap: 1.5rem;">
+                <a href="#" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Privacy Policy</a>
+                <a href="#" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
     <script type="module" src="/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const liveCountEl = document.getElementById('live-user-number');
+            if (liveCountEl) {
+                // Determine a random base range (1k, 10k, or 100k scale)
+                const scale = Math.random();
+                let currentCount = 0;
+                
+                if (scale < 0.4) {
+                    // 40% chance: 1,500 to 4,000
+                    currentCount = Math.floor(Math.random() * 2500) + 1500;
+                } else if (scale < 0.8) {
+                    // 40% chance: 8,000 to 18,000
+                    currentCount = Math.floor(Math.random() * 10000) + 8000;
+                } else {
+                    // 20% chance: 90,000 to 140,000
+                    currentCount = Math.floor(Math.random() * 50000) + 90000;
+                }
+
+                liveCountEl.textContent = currentCount.toLocaleString();
+
+                function updateCount() {
+                    // Random delay between 1.5s to 7.5s (looks more natural than fixed setInterval)
+                    const nextDelay = Math.floor(Math.random() * 6000) + 1500;
+
+                    setTimeout(() => {
+                        // 70% chance to increase, 30% chance to decrease (growth trend)
+                        const isIncrease = Math.random() > 0.3;
+                        
+                        // Jumps should be proportional to the current count
+                        let changeRange = 5;
+                        if (currentCount > 50000) changeRange = 35;
+                        else if (currentCount > 5000) changeRange = 12;
+
+                        const change = isIncrease 
+                            ? Math.floor(Math.random() * changeRange) + 1 
+                            : -(Math.floor(Math.random() * (changeRange * 0.6)) + 1);
+                        
+                        currentCount += change;
+                        
+                        // Prevent dropping below 1000 just in case
+                        if (currentCount < 1000) currentCount = 1000; 
+                        
+                        liveCountEl.textContent = currentCount.toLocaleString();
+                        
+                        // Recursive call for the next update
+                        updateCount();
+                    }, nextDelay);
+                }
+
+                // Start the random loop
+                updateCount();
+            }
+        });
+    </script>
 </body>
 </html>

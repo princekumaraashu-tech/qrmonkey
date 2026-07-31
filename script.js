@@ -1,4 +1,4 @@
-import { auth } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import { 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
@@ -10,9 +10,21 @@ import {
     getRedirectResult,
     signInAnonymously
 } from "firebase/auth";
-import { getDatabase, ref as dbRef, push } from "firebase/database";
+import { ref as dbRef, push, set, update } from "firebase/database";
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Lottie Loader if container exists
+    const lottieContainer = document.getElementById('lottie-loader');
+    if (lottieContainer) {
+        lottie.loadAnimation({
+            container: lottieContainer,
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: '/lottie-loading.json'
+        });
+    }
+
     // --- Auth Elements ---
     const loggedOutState = document.getElementById('logged-out-state');
     const loggedInState = document.getElementById('logged-in-state');
@@ -51,6 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    let userIp = 'unknown';
+    fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => { userIp = data.ip; })
+        .catch(() => {});
+
     // --- Auth Logic ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -59,6 +77,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loggedInState) loggedInState.style.display = 'flex';
             if (userEmailDisplay) userEmailDisplay.textContent = user.email;
             if (authModal) authModal.style.display = 'none';
+
+            // Track user in database
+            update(dbRef(db, `users/${user.uid}/profile`), {
+                email: user.email,
+                lastLogin: Date.now(),
+                ip_address: userIp
+            }).catch(e => console.error("Tracking error", e));
+
         } else {
             // User is signed out
             if (loggedInState) loggedInState.style.display = 'none';
@@ -252,8 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if(dropZone) {
-            dropZone.addEventListener('click', (e) => { if (e.target !== fileInput) fileInput.click(); });
-            
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dropZone.addEventListener(eventName, (e) => {
                     e.preventDefault();
@@ -355,8 +379,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     guest: true,
                     ipInfo: ipDetails
                 });
+                
+                const scanId = newScanRef.key;
+                
+                // Write to Audit Trail
+                try {
+                    await set(dbRef(db, `qr_logs/${scanId}`), {
+                        uid: auth.currentUser.uid,
+                        ip_address: ipDetails.ip || 'unknown',
+                        timestamp: Date.now()
+                    });
+                } catch (e) {
+                    console.error("Audit log failed", e);
+                }
 
-                const viewUrl = window.location.origin + '/view.html?id=' + newScanRef.key;
+                const viewUrl = window.location.origin + '/view.html?id=' + scanId;
                 
                 // The QR code is always the viewUrl, ensuring it's scannable
                 renderQR(viewUrl);
@@ -374,10 +411,27 @@ document.addEventListener('DOMContentLoaded', () => {
             qrCodeContainer.innerHTML = ''; 
             if(shareLink) shareLink.href = dataUrl;
 
-            qrCodeInstance = new QRCode(qrCodeContainer, {
-                text: dataUrl, width: 200, height: 200,
-                colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
+            qrCodeInstance = new QRCodeStyling({
+                width: 200,
+                height: 200,
+                data: dataUrl,
+                dotsOptions: {
+                    color: "#4f46e5",
+                    type: "rounded"
+                },
+                backgroundOptions: {
+                    color: "#ffffff"
+                },
+                imageOptions: {
+                    crossOrigin: "anonymous",
+                    margin: 8
+                },
+                cornersSquareOptions: {
+                    type: "extra-rounded",
+                    color: "#1e293b"
+                }
             });
+            qrCodeInstance.append(qrCodeContainer);
             
             const warningDiv = document.createElement('div');
             warningDiv.style = "margin-top: 1rem; padding: 0.5rem; background: rgba(239, 68, 68, 0.1); border: 1px dashed var(--error); border-radius: 8px; font-size: 0.85rem; color: var(--error); max-width: 250px; margin-left: auto; margin-right: auto;";
