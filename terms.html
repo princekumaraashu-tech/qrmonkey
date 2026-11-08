@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - QR Monkey</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7715469242530281"
+     crossorigin="anonymous"></script>
+    <link rel="icon" type="image/png" href="/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #3b82f6;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+
+        /* Blobs */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 20s infinite ease-in-out;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--primary); }
+        .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: var(--secondary); animation-delay: -5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(30px, -50px); }
+            66% { transform: translate(-20px, 20px); }
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .logo i {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .btn-create {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-create:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .legal-content h2 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legal-content h2 i {
+            color: var(--primary);
+        }
+
+        .legal-content p, .legal-content li {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .legal-content ul, .legal-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .legal-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .legal-content a {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .legal-content a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .highlight-box {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin: 2rem 0;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 4rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--text-main);
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .glass-panel {
+                padding: 2rem 1.5rem;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <nav class="navbar">
+        <a href="/index.html" class="logo">
+            <i class="ph ph-qr-code"></i>
+            QR Monkey
+        </a>
+        <a href="/index.html" class="btn-create">
+            <i class="ph ph-plus"></i>
+            Create QR
+        </a>
+    </nav>
+
+    <div class="container">
+        <div class="glass-panel">
+            <div class="page-header">
+                <h1>Terms and Conditions</h1>
+                <p>Last updated: July 31, 2026</p>
+            </div>
+
+            <div class="legal-content">
+                <p>Please read these Terms and Conditions ("Terms", "Terms and Conditions") carefully before using the QR Monkey website and services operated by us.</p>
+
+                <h2><i class="ph ph-handshake"></i> 1. Acceptance of Terms</h2>
+                <p>By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.</p>
+
+                <h2><i class="ph ph-qr-code"></i> 2. Service Description</h2>
+                <p>QR Monkey provides an online service for generating Quick Response (QR) codes. This includes creating QR codes for URLs, images, text, and documents. The availability and permanence of these codes depend on your chosen subscription or payment tier.</p>
+
+                <h2><i class="ph ph-user-circle"></i> 3. User Accounts and Registration</h2>
+                <p>To use certain features, you must register for an account. You must provide accurate and complete information and keep your account credentials secure. You are responsible for all activities that occur under your account.</p>
+
+                <div class="highlight-box">
+                    <h3>Service Tiers</h3>
+                    <ul>
+                        <li><strong>Free Tier:</strong> QR codes generated under the free tier will automatically expire and be deleted after 72 hours.</li>
+                        <li><strong>Pay-per-QR (₹1):</strong> Paying a one-time fee of ₹1 for a single QR code makes it permanent.</li>
+                        <li><strong>Pro Monthly (₹299/month):</strong> Subscription grants unlimited permanent QR code generations while active.</li>
+                    </ul>
+                </div>
+
+                <h2><i class="ph ph-money"></i> 4. Refund Policy</h2>
+                <p>Refunds are strictly governed by our <a href="/refund.html">Refund & Cancellation Policy</a>. Key points include:</p>
+                <ul>
+                    <li>Refunds are only available within <strong>24 hours</strong> of payment.</li>
+                    <li>After 24 hours, no refund will be issued under any circumstances.</li>
+                </ul>
+
+                <h2><i class="ph ph-warning-circle"></i> 5. User Conduct</h2>
+                <p>You agree not to use the Service to:</p>
+                <ol>
+                    <li>Generate QR codes pointing to illegal, malicious, or explicit content.</li>
+                    <li>Distribute malware, viruses, or any other harmful code.</li>
+                    <li>Violate any local, national, or international law.</li>
+                    <li>Infringe upon the intellectual property rights of others.</li>
+                </ol>
+
+                <h2><i class="ph ph-copyright"></i> 6. Intellectual Property</h2>
+                <p>The Service and its original content, features, and functionality are and will remain the exclusive property of QR Monkey and its licensors. User-generated content remains the property of the user, but you grant us a license to host and serve it as necessary for the Service.</p>
+
+                <h2><i class="ph ph-shield-check"></i> 7. Data Privacy</h2>
+                <p>Your use of the Service is also governed by our <a href="/privacy.html">Privacy Policy</a>. Please review it to understand our practices regarding data collection and storage.</p>
+
+                <h2><i class="ph ph-gavel"></i> 8. Limitation of Liability</h2>
+                <p>In no event shall QR Monkey, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
+
+                <h2><i class="ph ph-x-circle"></i> 9. Termination</h2>
+                <p>We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+
+                <h2><i class="ph ph-clock-counter-clockwise"></i> 10. Changes to Terms</h2>
+                <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will try to provide at least 30 days' notice prior to any new terms taking effect.</p>
+
+                <h2><i class="ph ph-map-pin"></i> 11. Governing Law</h2>
+                <p>These Terms shall be governed and construed in accordance with the laws of India, without regard to its conflict of law provisions.</p>
+
+                <h2><i class="ph ph-envelope"></i> 12. Contact Information</h2>
+                <p>If you have any questions about these Terms, please contact us via our <a href="/contact.html">Contact Us</a> page.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/terms.html">Terms & Conditions</a>
+            <a href="/privacy.html">Privacy Policy</a>
+            <a href="/refund.html">Refund Policy</a>
+            <a href="/contact.html">Contact Us</a>
+        </div>
+        <p>&copy; 2026 QR Monkey. All rights reserved.</p>
+    </footer>
+</body>
+</html>

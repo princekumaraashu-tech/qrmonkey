@@ -27,6 +27,15 @@ export function initiatePayment(amountINR, name, description, scanId = null) {
     // Razorpay works with paise (amount * 100)
     const amountPaise = amountINR * 100;
 
+    // Refund Policy Alert
+    const userConfirmed = confirm(
+        '⚠️ Refund Policy Notice\n\n' +
+        'Please note: Refunds are available ONLY within 24 hours of payment.\n' +
+        'After 24 hours, no refund will be issued under any circumstances.\n\n' +
+        'Do you wish to proceed with the payment?'
+    );
+    if (!userConfirmed) return;
+
     const options = {
         "key": RAZORPAY_KEY_ID,
         "amount": amountPaise.toString(),
@@ -82,7 +91,9 @@ async function handleSuccessfulPayment(amountINR, paymentId, scanId = null) {
 
         await update(userRef, {
             permanentQRCredits: credits + 1,
-            lastPaymentId: paymentId
+            lastPaymentId: paymentId,
+            lastPaymentTime: Date.now(),
+            lastPaymentAmount: amountINR
         });
         
         // If a specific QR code is being made permanent
@@ -98,7 +109,9 @@ async function handleSuccessfulPayment(amountINR, paymentId, scanId = null) {
         await update(userRef, {
             plan: 'pro',
             proSince: new Date().toISOString(),
-            lastPaymentId: paymentId
+            lastPaymentId: paymentId,
+            lastPaymentTime: Date.now(),
+            lastPaymentAmount: amountINR
         });
     }
 }

@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     let qrScanner = null;
+    
+    // Set the worker path explicitly to the CDN to prevent resolution errors
+    QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
 
     function initScanner() {
         resultPanel.style.display = 'none';

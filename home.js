@@ -695,6 +695,112 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileCreated.textContent = new Date(user.metadata.creationTime).toLocaleDateString();
             }
 
+            // Fetch User Role and update Profile UI
+            get(dbRef(db, `users/${user.uid}/profile`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const profileData = snapshot.val();
+                    window.userRole = profileData.role || 'free';
+                    window.userProExpiry = profileData.pro_expiry || null;
+                    
+                    const planBadge = document.getElementById('profile-plan-badge');
+                    const subscriptionSection = document.getElementById('subscription-info-section');
+                    const settingsPlanName = document.getElementById('settings-plan-name');
+                    const settingsPlanExpiry = document.getElementById('settings-plan-expiry');
+                    const refundSection = document.getElementById('refund-section');
+                    const refundEmailInput = document.getElementById('refund-email');
+                    
+                    if (window.userRole === 'admin') {
+                        if (profileEmail) profileEmail.textContent = 'Admin (' + user.email + ')';
+                        if (planBadge) {
+                            planBadge.textContent = 'Admin Role';
+                            planBadge.style.background = 'var(--primary)';
+                            planBadge.style.color = '#fff';
+                        }
+                        
+                        // Unhide Admin Nav
+                        const navAdminBtn = document.getElementById('nav-admin-btn');
+                        if (navAdminBtn) navAdminBtn.style.display = 'flex';
+                        
+                        const profileAdminShortcut = document.getElementById('profile-admin-shortcut');
+                        if (profileAdminShortcut) profileAdminShortcut.style.display = 'block';
+                        
+                        // Show subscription info for admin
+                        if (subscriptionSection) {
+                            subscriptionSection.style.display = 'block';
+                            if (settingsPlanName) settingsPlanName.textContent = 'Admin (Unlimited)';
+                            if (settingsPlanExpiry) { settingsPlanExpiry.textContent = 'Never'; settingsPlanExpiry.style.color = 'var(--success)'; }
+                        }
+                    } else if (window.userRole === 'pro') {
+                        if (profileEmail) profileEmail.textContent = 'Pro User (' + user.email + ')';
+                        if (planBadge) {
+                            planBadge.textContent = 'Pro Tier';
+                            planBadge.style.background = 'gold';
+                            planBadge.style.color = '#000';
+                        }
+                        
+                        // Show subscription info for pro
+                        if (subscriptionSection) {
+                            subscriptionSection.style.display = 'block';
+                            if (settingsPlanName) settingsPlanName.textContent = 'Pro Monthly';
+                            if (settingsPlanExpiry && window.userProExpiry) {
+                                const expiryDate = new Date(window.userProExpiry);
+                                settingsPlanExpiry.textContent = expiryDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+                                if (expiryDate < new Date()) {
+                                    settingsPlanExpiry.style.color = 'var(--error)';
+                                    settingsPlanExpiry.textContent += ' (Expired)';
+                                } else {
+                                    settingsPlanExpiry.style.color = 'var(--success)';
+                                }
+                            } else if (settingsPlanExpiry) {
+                                settingsPlanExpiry.textContent = 'Unlimited';
+                                settingsPlanExpiry.style.color = 'var(--success)';
+                            }
+                        }
+                    } else {
+                        // Free user
+                        if (planBadge) {
+                            planBadge.textContent = 'Free Plan';
+                            planBadge.style.background = 'rgba(255,255,255,0.1)';
+                            planBadge.style.color = 'var(--text-muted)';
+                        }
+                    }
+                    
+                    // Refund Section: Show only if user has a recent payment (within 24 hours)
+                    if (refundSection && refundEmailInput) {
+                        refundEmailInput.value = user.email;
+                    }
+                    get(dbRef(db, `users/${user.uid}`)).then((userSnap) => {
+                        if (userSnap.exists()) {
+                            const userData = userSnap.val();
+                            const lastPaymentTime = userData.lastPaymentTime;
+                            const now = Date.now();
+                            const twentyFourHours = 24 * 60 * 60 * 1000;
+                            
+                            if (lastPaymentTime && (now - lastPaymentTime) <= twentyFourHours) {
+                                // Payment within 24 hours, show refund form
+                                if (refundSection) refundSection.style.display = 'block';
+                            } else if (lastPaymentTime) {
+                                // Has paid before but > 24 hours ago, show section with disabled message
+                                if (refundSection) {
+                                    refundSection.style.display = 'block';
+                                    const formContainer = document.getElementById('refund-form-container');
+                                    if (formContainer) {
+                                        formContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 1rem;"><i class="ph-fill ph-clock"></i> Your last payment was more than 24 hours ago. Refund window has expired.</p>';
+                                    }
+                                }
+                            }
+                            // If never paid, refund section stays hidden
+                        }
+                    }).catch(e => console.error("Refund check error:", e));
+                    
+                } else {
+                    window.userRole = 'free';
+                }
+            }).catch(e => {
+                console.error("Role fetch error:", e);
+                window.userRole = 'free';
+            });
+
             // Fetch History
             const historyRef = dbRef(db, `users/${user.uid}/history`);
             onValue(historyRef, (snapshot) => {
@@ -741,10 +847,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         card.innerHTML = `
                             <div class="flip-card-inner">
-                                <div class="flip-card-front" style="position: relative;">
+                                <div class="flip-card-front">
                                     <div id="perm-badge-${key}" style="display: none; position: absolute; top: 8px; left: 8px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 5;"><i class="ph-fill ph-crown"></i> PRO</div>
                                     <button class="delete-history-btn" title="Delete this QR" style="position: absolute; top: 8px; right: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--error); cursor: pointer; z-index: 10; transition: all 0.3s ease;">
                                         <i class="ph-bold ph-trash"></i>
+                                    </button>
+                                    <button class="show-password-btn" title="Show Password" data-pwd="${item.password || ''}" style="position: absolute; top: 8px; right: 45px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; z-index: 10; transition: all 0.3s ease;">
+                                        <i class="ph-bold ph-dots-three-vertical"></i>
                                     </button>
                                     ${thumbHtml}
                                     <div class="history-info">${item.type === 'url' ? item.originalData : 'File/Image'}</div>
@@ -772,9 +881,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         
                         card.addEventListener('click', (e) => {
-                            // Don't flip if clicking the delete button
-                            if (e.target.closest('.delete-history-btn')) return;
+                            // Don't flip if clicking the delete or password button
+                            if (e.target.closest('.delete-history-btn') || e.target.closest('.show-password-btn')) return;
                             card.classList.toggle('flipped');
+                        });
+                        
+                        const pwdBtn = card.querySelector('.show-password-btn');
+                        pwdBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const pwd = pwdBtn.getAttribute('data-pwd');
+                            if (pwd) {
+                                alert("Password: " + pwd);
+                            } else {
+                                alert("Password: None");
+                            }
                         });
 
                         const delBtn = card.querySelector('.delete-history-btn');
@@ -842,12 +962,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                         } catch(err) { console.error("Storage delete error", err); }
                                     }
 
-                                    // Update database to soft delete
-                                    await update(dbRef(db, `scans/${scanId}`), {
-                                        data: null,
-                                        storagePath: null,
-                                        deleted: true
-                                    });
+                                    // Remove scan completely from Firebase Realtime Database
+                                    await remove(dbRef(db, `scans/${scanId}`));
                                 }
                             } catch (error) {
                                 console.error("Failed to delete", error);
@@ -1018,21 +1134,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     const encrypted = CryptoJS.AES.encrypt(dataUrl, password).toString();
                     
                     const scansRef = dbRef(db, `scans`);
-                    const newScanRef = push(scansRef, {
-                        uid: auth.currentUser ? auth.currentUser.uid : window.guestDeviceId,
+                    const newScanRef = push(scansRef);
+                    const isPermanent = (window.userRole === 'pro' || window.userRole === 'admin');
+                    await set(newScanRef, {
+                        uid: auth.currentUser ? auth.currentUser.uid : 'anonymous',
                         email: auth.currentUser ? auth.currentUser.email : 'guest@unknown',
                         ip_address: window.userIp,
                         type: currentMode,
                         data: encrypted,
                         encrypted: true,
                         timestamp: Date.now(),
-                        expiresAt: Date.now() + (72 * 60 * 60 * 1000) // 72 hours expiry
+                        permanent: isPermanent,
+                        expiresAt: isPermanent ? null : Date.now() + (72 * 60 * 60 * 1000) // 72 hours expiry
                     });
                     const scanId = newScanRef.key;
                     if (auth.currentUser) logAuditTrail(scanId, auth.currentUser.uid);
                     
                     const viewUrl = window.location.origin + '/view.html?id=' + scanId;
-                    renderQR(viewUrl, dataUrl); // Render the viewUrl in QR
+                    renderQR(viewUrl, dataUrl, password); // Render the viewUrl in QR
                 } catch (e) {
                     alert("Encryption failed. " + e.message);
                 }
@@ -1062,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        const saveToHistory = (type, originalData, qrDataUrl, thumbUrl, scanId = null) => {
+        const saveToHistory = (type, originalData, qrDataUrl, thumbUrl, scanId = null, password = null) => {
             if(!auth.currentUser) return;
             const historyRef = dbRef(db, `users/${auth.currentUser.uid}/history`);
             push(historyRef, {
@@ -1071,7 +1190,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 qrDataUrl,
                 thumbUrl: thumbUrl || null,
                 scanId: scanId,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                password: password
             });
         };
 
@@ -1102,31 +1222,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                // Check for password encryption
                 const encryptToggle = document.getElementById('encrypt-toggle');
                 const encryptPassword = document.getElementById('encrypt-password');
                 let isEncrypted = false;
                 let dataToStore = base64Data;
+                let usedPassword = null;
                 
                 if (encryptToggle && encryptToggle.checked) {
                     const password = encryptPassword.value;
                     if (!password) {
                         alert("Please enter a password to encrypt the data.");
+                        resetResult();
                         generateBtn.disabled = false;
-                        loadingSpinner.style.display = 'none';
                         return;
                     }
-                    try {
-                        dataToStore = CryptoJS.AES.encrypt(base64Data, password).toString();
-                        isEncrypted = true;
-                    } catch (e) {
-                        throw new Error("Encryption failed: " + e.message);
-                    }
+                    dataToStore = CryptoJS.AES.encrypt(base64Data, password).toString();
+                    isEncrypted = true;
+                    usedPassword = password;
                 }
 
-                // Push to Realtime Database instead of Storage
                 const scansRef = dbRef(db, `scans`);
-                const newScanRef = push(scansRef, {
+                const newScanRef = push(scansRef);
+                const isPermanent = (window.userRole === 'pro' || window.userRole === 'admin');
+                await set(newScanRef, {
                     uid: auth.currentUser ? auth.currentUser.uid : window.guestDeviceId,
                     email: auth.currentUser ? auth.currentUser.email : 'guest@unknown',
                     ip_address: window.userIp,
@@ -1135,19 +1253,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     data: dataToStore,
                     encrypted: isEncrypted,
                     timestamp: Date.now(),
-                    expiresAt: Date.now() + (72 * 60 * 60 * 1000) // 72 hours expiry
+                    permanent: isPermanent,
+                    expiresAt: isPermanent ? null : Date.now() + (72 * 60 * 60 * 1000) // 72 hours expiry
                 });
                 
                 const scanId = newScanRef.key;
                 if (auth.currentUser) logAuditTrail(scanId, auth.currentUser.uid);
                 
-                // Use a global to store thumb temporarily for saveToHistory
                 window.lastThumbUrl = currentMode === 'image' ? base64Data : '';
                 
-                // Generate URL pointing to our view page
                 const viewUrl = window.location.origin + '/view.html?id=' + scanId;
                 
-                renderQR(viewUrl, viewUrl);
+                renderQR(viewUrl, viewUrl, usedPassword);
             } catch (error) {
                 console.error(error);
                 alert('Failed to process file. ' + error.message);
@@ -1157,7 +1274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        const renderQR = (dataUrl, originalUrl) => {
+        const renderQR = (dataUrl, originalUrl, password = null) => {
             resultPanel.style.display = 'flex';
             loadingSpinner.style.display = 'none';
             qrCodeContainer.style.display = 'block';
@@ -1270,7 +1387,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         currentMode === 'url' ? urlInput.value : selectedFile.name, 
                         thumbData, 
                         window.lastThumbUrl || '',
-                        extractedScanId
+                        extractedScanId,
+                        password
                     );
                     window.lastThumbUrl = null;
 
@@ -1374,53 +1492,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Decryption Logic ---
-    const decryptBtn = document.getElementById('decrypt-btn');
-    const decryptData = document.getElementById('decrypt-data');
-    const decryptPassword = document.getElementById('decrypt-password');
-    const decryptResult = document.getElementById('decrypt-result');
-    const decryptError = document.getElementById('decrypt-error');
-    const decryptedText = document.getElementById('decrypted-text');
-
-    if (decryptBtn) {
-        decryptBtn.addEventListener('click', () => {
-            decryptResult.style.display = 'none';
-            decryptError.style.display = 'none';
-            
-            let data = decryptData.value.trim();
-            const password = decryptPassword.value;
-
-            if (!data || !password) {
-                return alert("Please enter both encrypted data and password.");
-            }
-
-            if (data.startsWith('qrmonkey:enc:')) {
-                data = data.replace('qrmonkey:enc:', '');
-            }
-
-            try {
-                const bytes = CryptoJS.AES.decrypt(data, password);
-                const originalText = bytes.toString(CryptoJS.enc.Utf8);
-
-                if (originalText) {
-                    decryptedText.textContent = originalText;
-                    if (originalText.startsWith('http')) {
-                        decryptedText.href = originalText;
-                        decryptedText.style.textDecoration = "underline";
-                    } else {
-                        decryptedText.removeAttribute('href');
-                        decryptedText.style.textDecoration = "none";
-                    }
-                    decryptResult.style.display = 'block';
-                } else {
-                    decryptError.style.display = 'block';
-                }
-            } catch (e) {
-                decryptError.style.display = 'block';
-            }
-        });
-    }
-    
     // Toggle Password Input Visibility
     const encryptToggle = document.getElementById('encrypt-toggle');
     const passwordContainer = document.getElementById('password-container');
@@ -1486,4 +1557,297 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Admin Panel Logic ---
+    const openAdminPanelBtn = document.getElementById('open-admin-panel-btn');
+    if (openAdminPanelBtn) {
+        openAdminPanelBtn.addEventListener('click', () => {
+            const navAdminBtn = document.getElementById('nav-admin-btn');
+            if (navAdminBtn) navAdminBtn.click();
+        });
+    }
+
+    // 1. Role Management
+    const adminApplyRoleBtn = document.getElementById('admin-apply-role-btn');
+    if (adminApplyRoleBtn) {
+        adminApplyRoleBtn.addEventListener('click', async () => {
+            const email = document.getElementById('admin-user-email').value.trim().toLowerCase();
+            const action = document.getElementById('admin-user-action').value;
+            const duration = document.getElementById('admin-user-duration').value;
+            const statusEl = document.getElementById('admin-role-status');
+            
+            if (!email) {
+                statusEl.textContent = 'Please enter an email address.';
+                statusEl.style.color = 'var(--error)';
+                return;
+            }
+
+            statusEl.textContent = 'Searching for user...';
+            statusEl.style.color = 'var(--text-muted)';
+            
+            try {
+                const usersRef = dbRef(db, 'users');
+                const snapshot = await get(usersRef);
+                if (!snapshot.exists()) {
+                    statusEl.textContent = 'No users found in database.';
+                    return;
+                }
+                
+                let targetUid = null;
+                snapshot.forEach(childSnap => {
+                    const profile = childSnap.val().profile;
+                    if (profile && profile.email && profile.email.toLowerCase() === email) {
+                        targetUid = childSnap.key;
+                    }
+                });
+
+                if (!targetUid) {
+                    statusEl.textContent = 'User not found.';
+                    statusEl.style.color = 'var(--error)';
+                    return;
+                }
+
+                const updates = {};
+                if (action === 'revoke') {
+                    updates.role = 'free';
+                    updates.pro_expiry = null;
+                } else if (action === 'admin') {
+                    updates.role = 'admin';
+                    updates.pro_expiry = null;
+                } else if (action === 'pro') {
+                    updates.role = 'pro';
+                    if (duration === 'unlimited') {
+                        updates.pro_expiry = 'unlimited';
+                    } else {
+                        const months = parseInt(duration);
+                        const expiryDate = new Date();
+                        expiryDate.setMonth(expiryDate.getMonth() + months);
+                        updates.pro_expiry = expiryDate.getTime();
+                    }
+                }
+
+                await update(dbRef(db, `users/${targetUid}/profile`), updates);
+                statusEl.textContent = `Success! ${email} updated.`;
+                statusEl.style.color = 'var(--success)';
+                
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = `Error: ${error.message}`;
+                statusEl.style.color = 'var(--error)';
+            }
+        });
+    }
+
+    // 2. Fetch Users
+    const fetchUsersBtn = document.getElementById('admin-fetch-users-btn');
+    if (fetchUsersBtn) {
+        fetchUsersBtn.addEventListener('click', async () => {
+            const listEl = document.getElementById('admin-users-list');
+            listEl.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+            
+            try {
+                const usersRef = dbRef(db, 'users');
+                const snapshot = await get(usersRef);
+                
+                if (!snapshot.exists()) {
+                    listEl.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
+                    return;
+                }
+
+                listEl.innerHTML = '';
+                const users = [];
+                snapshot.forEach(childSnap => {
+                    const profile = childSnap.val().profile;
+                    if (profile) {
+                        users.push({
+                            uid: childSnap.key,
+                            email: profile.email || 'Unknown',
+                            role: profile.role || 'free',
+                            ip: profile.ip_address || 'Unknown',
+                            joinDate: profile.lastLogin ? new Date(profile.lastLogin).toLocaleDateString() : 'Unknown'
+                        });
+                    }
+                });
+                
+                // Sort by newest login
+                users.reverse();
+                
+                users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                    tr.innerHTML = `
+                        <td style="padding: 0.75rem;">${u.email}</td>
+                        <td style="padding: 0.75rem;"><span class="badge" style="${u.role==='admin'?'background:var(--primary);color:white;':(u.role==='pro'?'background:gold;color:black;':'')}">${u.role.toUpperCase()}</span></td>
+                        <td style="padding: 0.75rem; font-family: monospace; font-size: 0.8rem;">${u.ip}</td>
+                        <td style="padding: 0.75rem;">${u.joinDate}</td>
+                    `;
+                    listEl.appendChild(tr);
+                });
+                
+            } catch (error) {
+                console.error(error);
+                listEl.innerHTML = `<tr><td colspan="4" style="color:var(--error);text-align:center;">Error: ${error.message}</td></tr>`;
+            }
+        });
+    }
+
+    // 3. QR Enquiry
+    const trackQrBtn = document.getElementById('admin-track-qr-btn');
+    if (trackQrBtn) {
+        trackQrBtn.addEventListener('click', async () => {
+            let qrId = document.getElementById('admin-qr-id').value.trim();
+            const resultEl = document.getElementById('admin-enquiry-result');
+            
+            if (!qrId) {
+                alert('Please enter a QR ID or encrypted string.');
+                return;
+            }
+            
+            // Clean up if they pasted full string or URL
+            if (qrId.includes('?id=')) {
+                qrId = qrId.split('?id=')[1].split('&')[0];
+            } else if (qrId.includes('id=')) {
+                qrId = qrId.split('id=')[1].split('&')[0];
+            }
+            if (qrId.startsWith('qrmonkey:enc:')) qrId = qrId.replace('qrmonkey:enc:', '');
+            if (qrId.includes('::')) qrId = qrId.split('::')[0];
+            
+            // Limit length but don't break valid Firebase IDs
+            if (qrId.length > 200) qrId = qrId.substring(0, 200);
+
+            resultEl.style.display = 'block';
+            resultEl.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Searching across all users...';
+            
+            try {
+                const usersRef = dbRef(db, 'users');
+                const snapshot = await get(usersRef);
+                let foundMatch = null;
+                
+                if (snapshot.exists()) {
+                    snapshot.forEach(childSnap => {
+                        const history = childSnap.val().history;
+                        const profile = childSnap.val().profile;
+                        if (history) {
+                            Object.keys(history).forEach(key => {
+                                const item = history[key];
+                                // Check if id matches, scanId matches, or if encrypted string matches
+                                if (key === qrId || (item.scanId && item.scanId === qrId) || (item.encrypted && item.encrypted.includes(qrId)) || (item.originalData && item.originalData.includes(qrId))) {
+                                    foundMatch = {
+                                        email: profile?.email || 'Unknown',
+                                        ip: profile?.ip_address || 'Unknown',
+                                        role: profile?.role || 'free',
+                                        date: item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Unknown',
+                                        type: item.type
+                                    };
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                if (foundMatch) {
+                    resultEl.innerHTML = `
+                        <h4 style="color: var(--success); margin-bottom: 0.5rem;"><i class="ph-fill ph-check-circle"></i> Match Found!</h4>
+                        <p><strong>Creator Email:</strong> ${foundMatch.email}</p>
+                        <p><strong>Creator IP:</strong> <span style="font-family: monospace;">${foundMatch.ip}</span></p>
+                        <p><strong>Account Role:</strong> ${foundMatch.role}</p>
+                        <p><strong>QR Created On:</strong> ${foundMatch.date}</p>
+                        <p><strong>QR Type:</strong> ${foundMatch.type}</p>
+                    `;
+                } else {
+                    resultEl.innerHTML = `<span style="color: var(--error);"><i class="ph ph-warning-circle"></i> No exact match found in database for that ID or string.</span>`;
+                }
+                
+            } catch (error) {
+                console.error(error);
+                resultEl.innerHTML = `<span style="color: var(--error);">Error: ${error.message}</span>`;
+            }
+        });
+    }
+
+    // --- Refund Form Submit ---
+    const submitRefundBtn = document.getElementById('submit-refund-btn');
+    if (submitRefundBtn) {
+        submitRefundBtn.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            if (!user) return alert('Please login first.');
+            
+            const reason = document.getElementById('refund-reason')?.value?.trim();
+            const paymentId = document.getElementById('refund-payment-id')?.value?.trim();
+            const statusMsg = document.getElementById('refund-status-msg');
+            
+            if (!reason || reason.length < 10) {
+                if (statusMsg) { statusMsg.textContent = 'Please provide a detailed reason (at least 10 characters).'; statusMsg.style.color = 'var(--error)'; }
+                return;
+            }
+            
+            submitRefundBtn.disabled = true;
+            submitRefundBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Submitting...';
+            
+            try {
+                let ipAddress = window.userIp || 'unknown';
+                
+                await push(dbRef(db, 'refundRequests'), {
+                    uid: user.uid,
+                    email: user.email,
+                    paymentId: paymentId || 'Not provided',
+                    reason: reason,
+                    ip_address: ipAddress,
+                    timestamp: Date.now(),
+                    status: 'pending'
+                });
+                
+                if (statusMsg) { statusMsg.textContent = '✅ Refund request submitted successfully! We will process it within 5-7 business days.'; statusMsg.style.color = 'var(--success)'; }
+                submitRefundBtn.innerHTML = '<i class="ph ph-check-circle"></i> Submitted';
+            } catch (error) {
+                console.error('Refund submit error:', error);
+                if (statusMsg) { statusMsg.textContent = 'Error: ' + error.message; statusMsg.style.color = 'var(--error)'; }
+                submitRefundBtn.disabled = false;
+                submitRefundBtn.innerHTML = '<i class="ph ph-arrow-counter-clockwise"></i> Submit Refund Request';
+            }
+        });
+    }
+
+    // --- Admin: Fetch Contact Us Applications ---
+    const fetchContactsBtn = document.getElementById('admin-fetch-contacts-btn');
+    if (fetchContactsBtn) {
+        fetchContactsBtn.addEventListener('click', async () => {
+            const contactsList = document.getElementById('admin-contacts-list');
+            if (!contactsList) return;
+            
+            contactsList.innerHTML = '<tr><td colspan="6" style="padding: 1rem; text-align: center;"><i class="ph ph-spinner ph-spin"></i> Loading...</td></tr>';
+            
+            try {
+                const snapshot = await get(dbRef(db, 'contactUs'));
+                if (!snapshot.exists()) {
+                    contactsList.innerHTML = '<tr><td colspan="6" style="padding: 1rem; text-align: center; color: var(--text-muted);">No contact requests found.</td></tr>';
+                    return;
+                }
+                
+                const contacts = snapshot.val();
+                let rows = '';
+                
+                Object.entries(contacts).reverse().forEach(([key, contact]) => {
+                    const date = contact.timestamp ? new Date(contact.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '--';
+                    const statusColor = contact.status === 'pending' ? 'var(--primary)' : 'var(--success)';
+                    const truncDesc = (contact.description || '').length > 50 ? contact.description.substring(0, 50) + '...' : (contact.description || '--');
+                    
+                    rows += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem; font-size: 0.85rem;">${contact.email || '--'}</td>
+                        <td style="padding: 0.75rem;">${contact.subject || '--'}</td>
+                        <td style="padding: 0.75rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${(contact.description || '').replace(/"/g, '&quot;')}">${truncDesc}</td>
+                        <td style="padding: 0.75rem; font-family: monospace; font-size: 0.8rem;">${contact.ip_address || '--'}</td>
+                        <td style="padding: 0.75rem;">${date}</td>
+                        <td style="padding: 0.75rem;"><span style="color: ${statusColor}; font-weight: 600; text-transform: capitalize;">${contact.status || 'pending'}</span></td>
+                    </tr>`;
+                });
+                
+                contactsList.innerHTML = rows || '<tr><td colspan="6" style="padding: 1rem; text-align: center; color: var(--text-muted);">No contacts found.</td></tr>';
+            } catch (error) {
+                console.error('Fetch contacts error:', error);
+                contactsList.innerHTML = `<tr><td colspan="6" style="padding: 1rem; text-align: center; color: var(--error);">Error: ${error.message}</td></tr>`;
+            }
+        });
+    }
+
 });

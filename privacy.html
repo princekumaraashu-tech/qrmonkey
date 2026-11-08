@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - QR Monkey</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7715469242530281"
+     crossorigin="anonymous"></script>
+    <link rel="icon" type="image/png" href="/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #3b82f6;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+
+        /* Blobs */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 20s infinite ease-in-out;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--primary); }
+        .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: var(--secondary); animation-delay: -5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(30px, -50px); }
+            66% { transform: translate(-20px, 20px); }
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .logo i {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .btn-create {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-create:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .legal-content h2 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legal-content h2 i {
+            color: var(--primary);
+        }
+
+        .legal-content p, .legal-content li {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .legal-content ul, .legal-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .legal-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .legal-content a {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .legal-content a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .highlight-box {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin: 2rem 0;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 4rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--text-main);
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .glass-panel {
+                padding: 2rem 1.5rem;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <nav class="navbar">
+        <a href="/index.html" class="logo">
+            <i class="ph ph-qr-code"></i>
+            QR Monkey
+        </a>
+        <a href="/index.html" class="btn-create">
+            <i class="ph ph-plus"></i>
+            Create QR
+        </a>
+    </nav>
+
+    <div class="container">
+        <div class="glass-panel">
+            <div class="page-header">
+                <h1>Privacy Policy</h1>
+                <p>Last updated: July 31, 2026</p>
+            </div>
+
+            <div class="legal-content">
+                <p>At QR Monkey, accessible from our website, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by QR Monkey and how we use it.</p>
+
+                <h2><i class="ph ph-info"></i> 1. Information We Collect</h2>
+                <p>When you use our Service, we may collect the following types of information:</p>
+                <ul>
+                    <li><strong>Personal Information:</strong> Email address and profile information when you register an account.</li>
+                    <li><strong>Content Data:</strong> Uploaded files, images, documents, and text used to generate QR codes.</li>
+                    <li><strong>Usage Data:</strong> IP addresses, browser type, device information, and pages visited on our site.</li>
+                </ul>
+
+                <h2><i class="ph ph-gear"></i> 2. How We Use Information</h2>
+                <p>We use the information we collect in various ways, including to:</p>
+                <ul>
+                    <li>Provide, operate, and maintain our website.</li>
+                    <li>Process transactions and manage your account.</li>
+                    <li>Host and deliver the content linked within your generated QR codes.</li>
+                    <li>Improve, personalize, and expand our website features.</li>
+                </ul>
+
+                <h2><i class="ph ph-database"></i> 3. Data Storage and Security</h2>
+                <p>Your data is securely stored using Firebase, utilizing encrypted storage mechanisms. We take commercially reasonable steps to protect your personal data from unauthorized access, alteration, disclosure, or destruction.</p>
+
+                <div class="highlight-box">
+                    <h3>QR Code Data Retention</h3>
+                    <ul>
+                        <li><strong>Free Tier:</strong> All data (including uploaded files) linked to free QR codes is automatically deleted from our servers after <strong>72 hours</strong>.</li>
+                        <li><strong>Paid & Pro Tiers:</strong> Data is stored permanently on our servers as long as the account remains active or the single-QR payment has been processed.</li>
+                    </ul>
+                </div>
+
+                <h2><i class="ph ph-cookie"></i> 4. Cookies and Tracking</h2>
+                <p>QR Monkey uses "cookies" to store information including visitors' preferences and the pages on the website that the visitor accessed or visited. This information is used to optimize the users' experience by customizing our web page content based on visitors' browser type and/or other information.</p>
+
+                <h2><i class="ph ph-users"></i> 5. Third-Party Services</h2>
+                <p>We rely on trusted third-party services to operate QR Monkey. These include:</p>
+                <ul>
+                    <li><strong>Firebase:</strong> For authentication, real-time database, and file storage.</li>
+                    <li><strong>Razorpay:</strong> For processing all payments securely. We do not store your credit card information on our servers.</li>
+                </ul>
+
+                <h2><i class="ph ph-user-focus"></i> 6. User Rights</h2>
+                <p>You have the right to access, update, or delete your personal information. You can manage your data and delete your account entirely through the Settings page in your dashboard. If you need assistance, please contact our support team.</p>
+
+                <h2><i class="ph ph-baby"></i> 7. Children's Privacy</h2>
+                <p>QR Monkey does not knowingly collect any Personal Identifiable Information from children under the age of 13. If you think that your child provided this kind of information on our website, we strongly encourage you to contact us immediately and we will do our best efforts to promptly remove such information.</p>
+
+                <h2><i class="ph ph-arrows-clockwise"></i> 8. Changes to Privacy Policy</h2>
+                <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes.</p>
+
+                <h2><i class="ph ph-envelope-simple"></i> 9. Contact Us</h2>
+                <p>If you have any questions or suggestions about our Privacy Policy, do not hesitate to <a href="/contact.html">contact us</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/terms.html">Terms & Conditions</a>
+            <a href="/privacy.html">Privacy Policy</a>
+            <a href="/refund.html">Refund Policy</a>
+            <a href="/contact.html">Contact Us</a>
+        </div>
+        <p>&copy; 2026 QR Monkey. All rights reserved.</p>
+    </footer>
+</body>
+</html>

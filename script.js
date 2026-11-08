@@ -72,18 +72,47 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Auth Logic ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            // Redirect logged-in users to home.html if they are on the index page
+            const path = window.location.pathname;
+            if (path.endsWith('index.html') || path === '/' || path === '') {
+                window.location.href = '/home.html';
+                return;
+            }
+
             // User is signed in
             if (loggedOutState) loggedOutState.style.display = 'none';
             if (loggedInState) loggedInState.style.display = 'flex';
-            if (userEmailDisplay) userEmailDisplay.textContent = user.email;
             if (authModal) authModal.style.display = 'none';
 
+            // Check if user is the admin from Database
+            import("firebase/database").then(({ get, child }) => {
+                get(child(dbRef(db), `users/${user.uid}/profile`)).then((snapshot) => {
+                    let isAdmin = false;
+                    if (snapshot.exists() && snapshot.val().role === 'admin') {
+                        isAdmin = true;
+                        if (userEmailDisplay) userEmailDisplay.textContent = 'Hello Admin';
+                        // Show alert once per session
+                        if (!sessionStorage.getItem('adminWelcomed')) {
+                            alert('Hello Admin');
+                            sessionStorage.setItem('adminWelcomed', 'true');
+                        }
+                    } else {
+                        if (userEmailDisplay) userEmailDisplay.textContent = user.email;
+                    }
+                }).catch(e => {
+                    if (userEmailDisplay) userEmailDisplay.textContent = user.email;
+                });
+            });
+
             // Track user in database
-            update(dbRef(db, `users/${user.uid}/profile`), {
+            const profileData = {
                 email: user.email,
                 lastLogin: Date.now(),
                 ip_address: userIp
-            }).catch(e => console.error("Tracking error", e));
+            };
+            
+            update(dbRef(db, `users/${user.uid}/profile`), profileData)
+                .catch(e => console.error("Tracking error", e));
 
         } else {
             // User is signed out

@@ -6,11 +6,10 @@
       
       "$scanId": {
         // Write logic:
-        // 1. Must be authenticated (including anonymous guests).
-        // 2. CREATE: Can only create a new scan where uid matches auth.uid.
-        // 3. DELETE: Can only delete if you are the owner, OR if the scan has expired (expiresAt < now).
-        // 4. UPDATE: Not allowed.
-        ".write": "auth != null && ( (!data.exists() && newData.child('uid').val() === auth.uid) || (!newData.exists() && (data.child('uid').val() === auth.uid || (data.child('expiresAt').exists() && data.child('expiresAt').val() < now))) )",
+        // 1. Must be authenticated.
+        // 2. CREATE: Can create new scan if uid matches auth.uid.
+        // 3. DELETE / UPDATE: Owner (uid matches auth.uid) or Admin or Expired scans.
+        ".write": "auth != null && ( (!data.exists() && newData.child('uid').val() === auth.uid) || (data.child('uid').val() === auth.uid) || (root.child('users').child(auth.uid).child('profile').child('role').val() === 'admin') || (!newData.exists() && data.child('expiresAt').exists() && data.child('expiresAt').val() < now) )",
         
         // Validate the structure of the data when creating
         ".validate": "newData.hasChildren(['uid', 'type', 'data', 'timestamp'])",
@@ -29,10 +28,12 @@
     },
     
     "users": {
+      // Admins can read the entire users list
+      ".read": "auth != null && root.child('users').child(auth.uid).child('profile').child('role').val() === 'admin'",
       "$uid": {
-        // Users can only read and write their own profile and history
+        // Normal users can read and write their own data. Admins can write to anyone's data.
         ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
+        ".write": "$uid === auth.uid || (auth != null && root.child('users').child(auth.uid).child('profile').child('role').val() === 'admin')"
       }
     },
     
@@ -52,6 +53,26 @@
         // Only allow creating a log (not updating/deleting) if authenticated and uid matches
         ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid",
         ".validate": "newData.hasChildren(['uid', 'ip_address', 'timestamp'])"
+      }
+    },
+
+    "contactUs": {
+      // Admins can read all contact requests
+      ".read": "auth != null && root.child('users').child(auth.uid).child('profile').child('role').val() === 'admin'",
+      "$contactId": {
+        // Anyone (authenticated or not) can create a contact request, but not update or delete
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['email', 'description', 'timestamp'])"
+      }
+    },
+
+    "refundRequests": {
+      // Admins can read all refund requests
+      ".read": "auth != null && root.child('users').child(auth.uid).child('profile').child('role').val() === 'admin'",
+      "$requestId": {
+        // Only authenticated users can create a refund request (not update/delete)
+        ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid",
+        ".validate": "newData.hasChildren(['uid', 'email', 'reason', 'timestamp'])"
       }
     }
   }

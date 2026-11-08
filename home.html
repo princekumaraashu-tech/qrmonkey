@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - QR Monkey</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7715469242530281"
+     crossorigin="anonymous"></script>
+    <link rel="icon" type="image/png" href="/logo.png">
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
@@ -68,11 +71,12 @@
                 <button class="side-btn" data-view="customize">
                     <i class="ph ph-paint-brush"></i> Customize QR
                 </button>
-                <button class="side-btn" data-view="decrypt">
-                    <i class="ph ph-lock-key-open"></i> Decrypt QR
-                </button>
+
                 <button class="side-btn" data-view="history">
                     <i class="ph ph-clock-counter-clockwise"></i> History
+                </button>
+                <button class="side-btn" id="nav-admin-btn" data-view="admin" style="display: none;">
+                    <i class="ph-bold ph-shield-star" style="color: var(--primary);"></i> Admin Panel
                 </button>
                 <button class="side-btn" data-view="pricing">
                     <i class="ph ph-currency-circle-dollar"></i> Pricing
@@ -228,42 +232,6 @@
                         <a id="share-link" class="share-link" href="#" target="_blank" style="width: 100%; text-align: center; margin-top: 0.5rem;">
                             <i class="ph ph-arrow-square-out"></i> Open Link
                         </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Decrypt QR View -->
-            <div class="dashboard-view" id="view-decrypt">
-                <header class="view-header">
-                    <h2>Decrypt QR Code</h2>
-                    <p>Enter encrypted QR data and password to unlock.</p>
-                </header>
-                <div class="glass-panel main-panel">
-                    <div class="input-section active">
-                        <label>Encrypted Data</label>
-                        <div class="input-group" style="margin-bottom: 1.5rem;">
-                            <i class="ph ph-code"></i>
-                            <input type="text" id="decrypt-data" placeholder="Paste encrypted QR text here">
-                        </div>
-
-                        <label>Password</label>
-                        <div class="input-group" style="margin-bottom: 1.5rem;">
-                            <i class="ph ph-lock-key"></i>
-                            <input type="password" id="decrypt-password" placeholder="Enter decryption password">
-                        </div>
-
-                        <button id="decrypt-btn" class="primary-btn">
-                            <i class="ph ph-lock-key-open"></i> Decrypt Data
-                        </button>
-
-                        <div id="decrypt-result" style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: 12px;">
-                            <h4 style="color: var(--success); margin-bottom: 0.5rem;"><i class="ph ph-check-circle"></i> Decrypted Successfully</h4>
-                            <a id="decrypted-text" href="#" target="_blank" style="word-break: break-all; color: var(--text-main);"></a>
-                        </div>
-                        <div id="decrypt-error" style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); border-radius: 12px;">
-                            <h4 style="color: var(--error); margin-bottom: 0.5rem;"><i class="ph ph-warning-circle"></i> Decryption Failed</h4>
-                            <p>Invalid data or wrong password.</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -558,20 +526,25 @@
                     </div>
 
                 </div>
+
+                <!-- Refund Policy Notice -->
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; text-align: center;">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;"><i class="ph-fill ph-warning" style="color: var(--error);"></i> <strong style="color: var(--error);">Refund Policy:</strong> Refunds are available <strong>only within 24 hours</strong> of payment. After 24 hours, no refund will be issued. <a href="/refund.html" style="color: var(--primary); text-decoration: underline;">Read full policy</a></p>
+                </div>
             </div>
 
             <!-- Profile Setting View -->
             <div class="dashboard-view" id="view-profile">
                 <header class="view-header">
                     <h2>Profile Settings</h2>
-                    <p>Manage your account and preferences.</p>
+                    <p>Manage your account, subscription, and preferences.</p>
                 </header>
                 <div class="glass-panel profile-card">
                     <div class="profile-header">
                         <div class="profile-avatar"><i class="ph ph-user"></i></div>
                         <div>
                             <h3 id="profile-email">Loading...</h3>
-                            <span class="badge">Free Plan</span>
+                            <span class="badge" id="profile-plan-badge">Free Plan</span>
                         </div>
                     </div>
                     <hr class="divider">
@@ -581,7 +554,50 @@
                             <p id="profile-created">...</p>
                         </div>
                     </div>
-                    
+
+                    <!-- Subscription Info Section -->
+                    <div id="subscription-info-section" style="margin-top: 1.5rem; padding: 1.5rem; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; display: none;">
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;"><i class="ph-fill ph-crown"></i> Subscription Details</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <label style="color: var(--text-muted); font-size: 0.85rem;">Current Plan</label>
+                                <p id="settings-plan-name" style="font-weight: 600; color: var(--primary);">Pro</p>
+                            </div>
+                            <div>
+                                <label style="color: var(--text-muted); font-size: 0.85rem;">Expires On</label>
+                                <p id="settings-plan-expiry" style="font-weight: 600;">--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Refund Section -->
+                    <div id="refund-section" style="margin-top: 1.5rem; padding: 1.5rem; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; display: none;">
+                        <h4 style="color: var(--error); margin-bottom: 0.5rem;"><i class="ph ph-arrow-counter-clockwise"></i> Request Refund</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;"><i class="ph-fill ph-warning"></i> You can only request a refund if your payment was made within the last 24 hours. After 24 hours, refunds are not available.</p>
+                        <div id="refund-form-container">
+                            <div class="input-group" style="margin-bottom: 1rem;">
+                                <i class="ph ph-envelope"></i>
+                                <input type="email" id="refund-email" placeholder="Your registered email" readonly>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 1rem;">
+                                <i class="ph ph-note"></i>
+                                <input type="text" id="refund-payment-id" placeholder="Payment ID (if available)">
+                            </div>
+                            <textarea id="refund-reason" placeholder="Reason for refund request..." style="width: 100%; min-height: 80px; padding: 0.8rem; background: rgba(0,0,0,0.3); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-family: 'Outfit', sans-serif; resize: vertical; margin-bottom: 1rem;"></textarea>
+                            <button id="submit-refund-btn" class="secondary-btn" style="width: 100%; justify-content: center; color: var(--error); border-color: rgba(239, 68, 68, 0.3);">
+                                <i class="ph ph-arrow-counter-clockwise"></i> Submit Refund Request
+                            </button>
+                        </div>
+                        <p id="refund-status-msg" style="margin-top: 0.75rem; font-size: 0.9rem; text-align: center;"></p>
+                    </div>
+
+                    <!-- Admin Panel Shortcut -->
+                    <div id="profile-admin-shortcut" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                        <button id="open-admin-panel-btn" class="primary-btn" style="width: 100%; justify-content: center;">
+                            <i class="ph-bold ph-shield-star"></i> Open Admin Panel
+                        </button>
+                    </div>
+
                     <!-- Danger Zone -->
                     <div style="margin-top: 2rem; border-top: 1px solid rgba(239, 68, 68, 0.3); padding-top: 1.5rem;">
                         <h4 style="color: var(--error); margin-bottom: 0.5rem;"><i class="ph ph-warning"></i> Danger Zone</h4>
@@ -589,6 +605,106 @@
                         <button id="delete-account-btn" class="secondary-btn" style="color: var(--error); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); width: 100%; justify-content: center;">
                             <i class="ph-bold ph-trash"></i> Delete Account
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel View -->
+            <div class="dashboard-view" id="view-admin">
+                <header class="view-header">
+                    <h2><i class="ph-bold ph-shield-star"></i> Admin Control Panel</h2>
+                    <p>Manage users, assign roles, and track usage.</p>
+                </header>
+                
+                <div class="admin-grid" style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                    <!-- Role Management -->
+                    <div class="glass-panel main-panel">
+                        <h3 style="margin-bottom: 1rem;"><i class="ph ph-users-three"></i> User Role Management</h3>
+                        <div class="input-group" style="margin-bottom: 1rem;">
+                            <i class="ph ph-envelope"></i>
+                            <input type="email" id="admin-user-email" placeholder="Enter user's email address">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <select id="admin-user-action" class="custom-select" style="width: 100%; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                                <option value="pro">Make Pro Tier</option>
+                                <option value="admin">Make Admin</option>
+                                <option value="revoke">Revoke Power (Free Tier)</option>
+                            </select>
+                            <select id="admin-user-duration" class="custom-select" style="width: 100%; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                                <option value="unlimited">Unlimited Time</option>
+                                <option value="1">1 Month</option>
+                                <option value="3">3 Months</option>
+                                <option value="6">6 Months</option>
+                                <option value="12">1 Year</option>
+                            </select>
+                        </div>
+                        <button id="admin-apply-role-btn" class="primary-btn" style="width: 100%; justify-content: center;">
+                            <i class="ph ph-check-circle"></i> Apply Changes
+                        </button>
+                        <p id="admin-role-status" style="margin-top: 1rem; font-size: 0.9rem; text-align: center;"></p>
+                    </div>
+
+                    <!-- Enquiry Panel -->
+                    <div class="glass-panel main-panel">
+                        <h3 style="margin-bottom: 1rem;"><i class="ph ph-magnifying-glass"></i> QR Enquiry Panel</h3>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                            <div class="input-group" style="flex: 1; min-width: 250px;">
+                                <i class="ph ph-qr-code"></i>
+                                <input type="text" id="admin-qr-id" placeholder="Enter QR ID or text snippet">
+                            </div>
+                            <button id="admin-track-qr-btn" class="secondary-btn"><i class="ph ph-magnifying-glass"></i> Track</button>
+                        </div>
+                        <div id="admin-enquiry-result" style="display: none; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.9rem;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Fetch All Users -->
+                    <div class="glass-panel main-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin: 0;"><i class="ph ph-list-dashes"></i> Registered Users</h3>
+                            <button id="admin-fetch-users-btn" class="secondary-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="ph ph-arrows-clockwise"></i> Fetch Users</button>
+                        </div>
+                        <div style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);">
+                                        <th style="padding: 0.75rem;">Email</th>
+                                        <th style="padding: 0.75rem;">Role</th>
+                                        <th style="padding: 0.75rem;">Last IP</th>
+                                        <th style="padding: 0.75rem;">Join Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-list">
+                                    <tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--text-muted);">Click Fetch Users to load data</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Contact Us Applications -->
+                    <div class="glass-panel main-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin: 0;"><i class="ph ph-envelope-open"></i> Contact Us Applications</h3>
+                            <button id="admin-fetch-contacts-btn" class="secondary-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="ph ph-arrows-clockwise"></i> Fetch Contacts</button>
+                        </div>
+                        <div style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);">
+                                        <th style="padding: 0.75rem;">Email</th>
+                                        <th style="padding: 0.75rem;">Subject</th>
+                                        <th style="padding: 0.75rem;">Description</th>
+                                        <th style="padding: 0.75rem;">IP</th>
+                                        <th style="padding: 0.75rem;">Date</th>
+                                        <th style="padding: 0.75rem;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-contacts-list">
+                                    <tr><td colspan="6" style="padding: 1rem; text-align: center; color: var(--text-muted);">Click Fetch Contacts to load data</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
